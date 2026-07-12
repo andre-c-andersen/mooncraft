@@ -44,6 +44,8 @@
   const SAFE_ANGLE = 0.25; // radians from vertical
   const START_FUEL = 500;
   const SLUG_SPEED = 1.7;
+  const SLUG_SPEED_STEP = 0.15;      // extra slug speed per bonus cannon
+  const CANNON_LEVELS = [2, 5, 8, 11, 14, 16]; // one extra cannon unlocks at each
   const FIRE_INTERVAL = 150;  // frames between shots per cannon
   const SLUG_HIT_RADIUS = 15;
   const START_BOMBS = 3;
@@ -97,17 +99,28 @@
     terrain[terrain.length - 1].x = W;
   }
 
+  function cannonCount() {
+    return 2 + CANNON_LEVELS.filter(l => level >= l).length;
+  }
+
+  function slugSpeed() {
+    return SLUG_SPEED + (cannonCount() - 2) * SLUG_SPEED_STEP;
+  }
+
   function placeCannons() {
     cannons = [];
     // terrain vertices away from screen edges and landing pads
     const candidates = terrain.filter(pt =>
       pt.x > W * 0.08 && pt.x < W * 0.92 &&
       !pads.some(p => pt.x > p.x1 - 60 && pt.x < p.x2 + 60));
-    for (const targetX of [W * 0.3, W * 0.7]) {
+    const n = cannonCount();
+    const minGap = Math.min(W * 0.15, (W * 0.8) / n); // tighter packing allowed as count grows
+    for (let i = 0; i < n; i++) {
+      const targetX = W * ((i + 1) / (n + 1));
       let best = null, bestDist = Infinity;
       for (const pt of candidates) {
         const d = Math.abs(pt.x - targetX);
-        if (d < bestDist && !cannons.some(c => Math.abs(c.x - pt.x) < W * 0.15)) {
+        if (d < bestDist && !cannons.some(c => Math.abs(c.x - pt.x) < minGap)) {
           best = pt; bestDist = d;
         }
       }
@@ -462,11 +475,12 @@
         c.cooldown--;
         if (c.cooldown <= 0) {
           c.cooldown = FIRE_INTERVAL + Math.random() * 60;
+          const sp = slugSpeed();
           slugs.push({
             x: c.x + Math.cos(c.angle) * 24,
             y: c.y + Math.sin(c.angle) * 24 - 6,
-            vx: Math.cos(c.angle) * SLUG_SPEED,
-            vy: Math.sin(c.angle) * SLUG_SPEED,
+            vx: Math.cos(c.angle) * sp,
+            vy: Math.sin(c.angle) * sp,
             life: 900,
           });
         }

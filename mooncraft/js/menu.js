@@ -66,8 +66,8 @@ function helpContent() {
     ['X', 'toggle fly assist *'],
     ['BACK', 'this menu'],
   ] : touchDevice ? [
-    ['◀ ▶', 'rotate'],
-    ['▲', 'thrust'],
+    ['LEFT PAD', 'slide off-center to turn'],
+    ['RIGHT SLIDER', 'throttle · bottom = off'],
     ['B', 'drop bomb *'],
     ['A', 'toggle fly assist *'],
     ['⚙', 'open/close this menu'],

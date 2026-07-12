@@ -69,7 +69,8 @@ function update() {
   }
 
   let thrustAmt = 0;
-  if (keys['ArrowUp'] || keys['w'] || keys[' '] || touch.thrust) thrustAmt = 1;
+  if (keys['ArrowUp'] || keys['w'] || keys[' ']) thrustAmt = 1;
+  thrustAmt = Math.max(thrustAmt, touch.thrust); // analog throttle from the touch slider
   if (pad) thrustAmt = Math.max(thrustAmt, pad.thrustAmt);
 
   // fly assist is a toggle: F key (in keyboard.js), X on gamepad, A on touch

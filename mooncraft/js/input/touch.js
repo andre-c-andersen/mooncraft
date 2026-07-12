@@ -1,4 +1,8 @@
-// Touch input (iOS / mobile): on-screen buttons + tap to continue.
+// Touch input (iOS / mobile): fixed slide controls + tap buttons,
+// Minecraft-on-iPad style. Left: a horizontal pad with a center point —
+// thumb position left/right of center sets the turn rate. Right: a
+// vertical throttle slider — bottom is OFF, top is full thrust (absolute
+// position, never reverse). Bomb / assist / gear are tap buttons.
 
 import { game } from '../state.js';
 import { canvas, ctx, toLogical } from '../canvas.js';
@@ -9,21 +13,28 @@ import { shopRowAt, shopBuy } from '../shop.js';
 
 export const touch = {
   enabled: 'ontouchstart' in window || navigator.maxTouchPoints > 0,
-  rot: 0,
-  thrust: false,
+  rot: 0,     // -1..1 from the left pad
+  thrust: 0,  //  0..1 from the right slider
 };
 
-function touchButtons() {
+// touches we're tracking, keyed by touch identifier:
+// { kind: 'rot' | 'thrust' | 'tap', x, y }
+const tracked = new Map();
+
+function sliders() {
   const { W, H } = game;
-  const r = Math.min(W, H) * 0.105;
-  const m = r * 0.7; // margin from screen edges
-  const y = H - r - m;
   return {
-    left:   { x: m + r, y, r },
-    right:  { x: m + r * 3.4, y, r },
-    assist: { x: m + r * 2.2, y: y - r * 2.6, r: r * 0.8 },
-    thrust: { x: W - m - r * 1.15, y, r: r * 1.15 },
-    bomb:   { x: W - m - r * 1.15, y: y - r * 3, r: r * 0.75 },
+    rot: { cx: 220, cy: H - 90, half: 130 },              // horizontal pad, centered on cx
+    thr: { x: W - 110, bottom: H - 50, height: 210 },     // vertical slider, bottom = off
+  };
+}
+
+function actionButtons() {
+  const { W, H } = game;
+  const r = Math.min(W, H) * 0.07;
+  return {
+    assist: { x: 24 + r, y: H * 0.52, r },
+    bomb:   { x: W - 24 - r, y: H * 0.52, r },
   };
 }
 
@@ -42,58 +53,80 @@ function inButton(b, x, y) {
   return Math.hypot(x - b.x, y - b.y) <= b.r * 1.25; // forgiving hit area
 }
 
-function readTouches(e) {
+function inRotPad(s, x, y) {
+  return Math.abs(x - s.rot.cx) <= s.rot.half + 46 && Math.abs(y - s.rot.cy) <= 74;
+}
+
+function inThrustSlider(s, x, y) {
+  return Math.abs(x - s.thr.x) <= 64
+    && y <= s.thr.bottom + 36 && y >= s.thr.bottom - s.thr.height - 46;
+}
+
+function recompute() {
   touch.rot = 0;
-  touch.thrust = false;
-  const btns = touchButtons();
-  for (const t of e.touches) {
-    const p = toLogical(t.clientX, t.clientY);
-    if (inButton(btns.left, p.x, p.y)) touch.rot -= 1;
-    if (inButton(btns.right, p.x, p.y)) touch.rot += 1;
-    if (inButton(btns.thrust, p.x, p.y)) touch.thrust = true;
+  touch.thrust = 0;
+  const s = sliders();
+  for (const g of tracked.values()) {
+    if (g.kind === 'rot') {
+      touch.rot = Math.max(-1, Math.min(1, (g.x - s.rot.cx) / s.rot.half));
+    } else if (g.kind === 'thrust') {
+      touch.thrust = Math.max(0, Math.min(1, (s.thr.bottom - g.y) / s.thr.height));
+    }
   }
 }
 
 canvas.addEventListener('touchstart', e => {
   e.preventDefault();
-  // gear first: it toggles the menu from any state
+  const s = sliders();
+  const btns = actionButtons();
   for (const t of e.changedTouches) {
     const p = toLogical(t.clientX, t.clientY);
+    let kind = 'tap';
+
     if (inButton(gearButton(), p.x, p.y)) {
       menu.open = !menu.open;
-      readTouches(e);
-      return;
-    }
-  }
-  if (menu.open) {
-    // menu taps: sliders adjust by tapped half, action rows activate
-    for (const t of e.changedTouches) {
-      const p = toLogical(t.clientX, t.clientY);
+    } else if (menu.open) {
       menuTapAt(p.x, p.y);
-    }
-    return;
-  }
-  const btns = touchButtons();
-  for (const t of e.changedTouches) {
-    const p = toLogical(t.clientX, t.clientY);
-    if (buttonUnlocked('bomb') && inButton(btns.bomb, p.x, p.y)) dropBomb();
-    if (buttonUnlocked('assist') && inButton(btns.assist, p.x, p.y)) game.assistOn = !game.assistOn;
-  }
-  if (game.state === 'landed') {
-    // shop taps: tap a row to buy, tap LAUNCH to continue
-    for (const t of e.changedTouches) {
-      const p = toLogical(t.clientX, t.clientY);
+    } else if (game.state === 'landed') {
       const row = shopRowAt(p.x, p.y);
       if (row) shopBuy(row);
+    } else if (game.state === 'crashed') {
+      advance();
+    } else if (buttonUnlocked('bomb') && inButton(btns.bomb, p.x, p.y)) {
+      dropBomb();
+    } else if (buttonUnlocked('assist') && inButton(btns.assist, p.x, p.y)) {
+      game.assistOn = !game.assistOn;
+    } else if (inRotPad(s, p.x, p.y) && ![...tracked.values()].some(g => g.kind === 'rot')) {
+      kind = 'rot';
+    } else if (inThrustSlider(s, p.x, p.y) && ![...tracked.values()].some(g => g.kind === 'thrust')) {
+      kind = 'thrust';
     }
-  } else if (game.state === 'crashed') {
-    advance();
+
+    tracked.set(t.identifier, { kind, x: p.x, y: p.y });
   }
-  readTouches(e);
+  recompute();
 }, { passive: false });
-canvas.addEventListener('touchmove', e => { e.preventDefault(); readTouches(e); }, { passive: false });
-canvas.addEventListener('touchend', e => { e.preventDefault(); readTouches(e); }, { passive: false });
-canvas.addEventListener('touchcancel', e => { e.preventDefault(); readTouches(e); }, { passive: false });
+
+canvas.addEventListener('touchmove', e => {
+  e.preventDefault();
+  for (const t of e.changedTouches) {
+    const g = tracked.get(t.identifier);
+    if (!g) continue;
+    const p = toLogical(t.clientX, t.clientY);
+    g.x = p.x;
+    g.y = p.y;
+  }
+  recompute();
+}, { passive: false });
+
+for (const type of ['touchend', 'touchcancel']) {
+  canvas.addEventListener(type, e => {
+    e.preventDefault();
+    for (const t of e.changedTouches) tracked.delete(t.identifier);
+    recompute();
+  }, { passive: false });
+}
+
 // block pinch-zoom gestures in iOS Safari
 document.addEventListener('gesturestart', e => e.preventDefault());
 
@@ -121,30 +154,75 @@ export function drawTouchGear() {
 
 export function drawTouchControls() {
   if (!touch.enabled || menu.open) return;
-  const btns = touchButtons();
-  const labels = { left: '◀', right: '▶', thrust: '▲', bomb: 'B', assist: 'A' };
+  const s = sliders();
+  const rotActive = [...tracked.values()].some(g => g.kind === 'rot');
+  const thrActive = [...tracked.values()].some(g => g.kind === 'thrust');
   ctx.save();
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  ctx.lineWidth = 2;
-  for (const name in btns) {
-    if (!buttonUnlocked(name)) continue;
-    const b = btns[name];
-    const active = (name === 'left' && touch.rot < 0) || (name === 'right' && touch.rot > 0)
-                || (name === 'thrust' && touch.thrust)
-                || (name === 'assist' && game.assistOn);
-    const disabled = name === 'bomb' && game.lander.bombs <= 0;
-    ctx.globalAlpha = disabled ? 0.15 : (active ? 0.6 : 0.3);
+
+  // left: rotation pad — track, center notch, end arrows, knob
+  {
+    const { cx, cy, half } = s.rot;
+    ctx.globalAlpha = rotActive ? 0.55 : 0.3;
+    ctx.strokeStyle = '#90a4ae';
+    ctx.lineWidth = 3;
     ctx.beginPath();
-    ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
-    ctx.fillStyle = '#37474f';
-    ctx.fill();
-    ctx.strokeStyle = active ? '#fff176' : '#90a4ae';
+    ctx.moveTo(cx - half, cy);
+    ctx.lineTo(cx + half, cy);
     ctx.stroke();
-    ctx.globalAlpha = disabled ? 0.25 : (active ? 1 : 0.7);
-    ctx.fillStyle = '#e0e0e0';
-    ctx.font = 'bold ' + Math.round(b.r * 0.75) + 'px Courier New';
-    ctx.fillText(labels[name], b.x, b.y + 1);
+    ctx.beginPath();
+    ctx.moveTo(cx, cy - 12);
+    ctx.lineTo(cx, cy + 12);
+    ctx.stroke();
+    ctx.fillStyle = '#90a4ae';
+    ctx.font = '20px Courier New';
+    ctx.fillText('◀', cx - half - 24, cy + 1);
+    ctx.fillText('▶', cx + half + 24, cy + 1);
+    ctx.globalAlpha = rotActive ? 0.9 : 0.45;
+    ctx.beginPath();
+    ctx.arc(cx + touch.rot * half, cy, 20, 0, Math.PI * 2);
+    ctx.fillStyle = touch.rot !== 0 ? '#fff176' : '#78909c';
+    ctx.fill();
   }
+
+  // right: throttle slider — bottom is OFF, fill shows the amount
+  {
+    const { x, bottom, height } = s.thr;
+    ctx.globalAlpha = thrActive ? 0.55 : 0.3;
+    ctx.strokeStyle = '#90a4ae';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(x, bottom);
+    ctx.lineTo(x, bottom - height);
+    ctx.stroke();
+    ctx.beginPath(); // end caps
+    ctx.moveTo(x - 12, bottom);
+    ctx.lineTo(x + 12, bottom);
+    ctx.moveTo(x - 12, bottom - height);
+    ctx.lineTo(x + 12, bottom - height);
+    ctx.stroke();
+    ctx.fillStyle = '#90a4ae';
+    ctx.font = '20px Courier New';
+    ctx.fillText('▲', x, bottom - height - 22);
+    ctx.font = '12px Courier New';
+    ctx.fillText('OFF', x, bottom + 16);
+    if (touch.thrust > 0) {
+      ctx.globalAlpha = 0.6;
+      ctx.strokeStyle = '#ffa726';
+      ctx.lineWidth = 6;
+      ctx.beginPath();
+      ctx.moveTo(x, bottom);
+      ctx.lineTo(x, bottom - height * touch.thrust);
+      ctx.stroke();
+    }
+    ctx.globalAlpha = thrActive ? 0.9 : 0.45;
+    ctx.beginPath();
+    ctx.arc(x, bottom - height * touch.thrust, 20, 0, Math.PI * 2);
+    ctx.fillStyle = touch.thrust > 0 ? '#ffa726' : '#78909c';
+    ctx.fill();
+  }
+
   ctx.restore();
+  ctx.textBaseline = 'alphabetic';
 }

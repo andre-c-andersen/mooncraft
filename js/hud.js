@@ -3,6 +3,7 @@
 import { game, fuelCapacity } from './state.js';
 import { ctx } from './canvas.js';
 import { SAFE_VX, SAFE_VY, SAFE_ANGLE, START_BOMBS } from './config.js';
+import { padAt } from './terrain.js';
 import { gamepad } from './input/gamepad.js';
 import { touch } from './input/touch.js';
 
@@ -25,10 +26,12 @@ function drawLandingIndicator(x, y) {
   const angleOk = Math.abs(fx) < 1;
   const speedOk = fy < 1;
   const close = Math.abs(fx) > 0.75 || fy > 0.75;
+  const pad = padAt(lander.x); // is a landing pad directly below right now?
 
   let color, status;
   if (!speedOk) { color = '#ff5252'; status = 'TOO FAST'; }
   else if (!angleOk) { color = '#ff5252'; status = 'BAD ANGLE'; }
+  else if (!pad) { color = '#ffb300'; status = 'NO PAD'; }
   else if (close) { color = '#ffb300'; status = 'CAUTION'; }
   else { color = '#4caf50'; status = 'LAND OK'; }
 
@@ -86,10 +89,25 @@ function drawLandingIndicator(x, y) {
     ctx.stroke();
   }
 
+  // pad-below lamp: lights up when a landing pad is directly under the ship
+  ctx.strokeStyle = pad ? '#4caf50' : '#444';
+  ctx.lineWidth = 4;
+  ctx.beginPath();
+  ctx.moveTo(cx - 13, cy + half + 7);
+  ctx.lineTo(cx + 13, cy + half + 7);
+  ctx.stroke();
+  if (pad) {
+    // which pad: its multiplier, in the pad's difficulty color
+    ctx.fillStyle = pad.color;
+    ctx.font = 'bold 11px Courier New';
+    ctx.textAlign = 'left';
+    ctx.fillText('x' + pad.mult, cx + 20, cy + half + 11);
+  }
+
   ctx.fillStyle = color;
   ctx.font = 'bold 12px Courier New';
   ctx.textAlign = 'center';
-  ctx.fillText(status, cx, cy + half + 18);
+  ctx.fillText(status, cx, cy + half + 24);
 
   ctx.restore();
   ctx.textAlign = 'left';

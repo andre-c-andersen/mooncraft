@@ -60,6 +60,8 @@ Landings earn **credits**, spent in the supply depot (shown after every landing)
 
 From level 2, cannons appear (one more every other level, up to 10): guns fire slugs you can dodge, and every second cannon is a laser that telegraphs its shot with a thin red line before firing. Game over resets credits and unlocks — the run is the progression.
 
+Progress (level, credits, lives, unlocks) is saved in your browser, so a refresh resumes the run at the start of the current level. Only a game over wipes it.
+
 ### Keyboard
 
 | Key | Action |
@@ -76,11 +78,12 @@ From level 2, cannons appear (one more every other level, up to 10): guns fire s
 
 | Input | Action |
 |---|---|
-| Left stick / D-pad | Rotate (analog) · navigate shop |
+| Left stick / D-pad | Rotate (analog) · navigate menus |
 | Right trigger | Thrust (analog throttle) |
-| A | Full thrust / launch / retry |
-| B / LB | Drop bomb (once unlocked) |
-| X | Toggle fly assist · buy in shop |
+| A | Full thrust · confirm selected (shop & menus) · retry |
+| B / LB | Drop bomb (once unlocked) · close menu |
+| X | Toggle fly assist |
+| Start | Launch next level / retry |
 | Back | Settings menu |
 
 The settings menu has adjustable rotation sensitivity, stick deadzone, and trigger threshold — saved in your browser.

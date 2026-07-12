@@ -1,6 +1,6 @@
 // Game lifecycle: attempt reset, level advance, retry, game over.
 
-import { game, freshUnlocks } from './state.js';
+import { game, freshUnlocks, saveProgress } from './state.js';
 import { START_LIVES } from './config.js';
 import { genTerrain } from './terrain.js';
 import { createLander } from './lander.js';
@@ -34,4 +34,5 @@ export function advance() {
     genTerrain();
   }
   reset();
+  saveProgress();
 }

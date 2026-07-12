@@ -16,6 +16,20 @@ export function freshUnlocks() {
   };
 }
 
+// --- Persisted run progress (survives refresh; cleared by game over) ---
+const PROGRESS_KEY = 'moonLanderProgress';
+
+function loadProgress() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(PROGRESS_KEY));
+    // a save with no lives left is a dead run — start fresh instead
+    if (saved && typeof saved === 'object' && saved.lives > 0) return saved;
+  } catch (e) {}
+  return null;
+}
+
+const saved = loadProgress();
+
 export const game = {
   W: VIEW_W,  // logical size — fixed; the canvas scales it to the screen
   H: VIEW_H,
@@ -30,14 +44,29 @@ export const game = {
   bombs: [],
   booms: [],
   state: 'flying', // flying | landed | crashed
-  credits: 0,
-  level: startLevel,
-  lives: START_LIVES,
-  unlocks: freshUnlocks(),
-  assistOn: false,     // fly assist toggle state
+  credits: saved ? saved.credits || 0 : 0,
+  // an explicit ?level= beats the save (debugging); otherwise resume where we were
+  level: urlLevel >= 1 ? startLevel : (saved && saved.level >= 1 ? saved.level : startLevel),
+  lives: saved ? saved.lives : START_LIVES,
+  unlocks: { ...freshUnlocks(), ...(saved ? saved.unlocks : null) },
+  assistOn: saved ? !!saved.assistOn : false, // fly assist toggle state
   assistActive: false, // assist engaged this frame (for the HUD)
   lifeAwarded: false,  // bonus life granted on the current landing (for the HUD)
 };
+
+// levelBump: pass 1 when saving at touchdown, so a refresh on the shop screen
+// resumes on the next level instead of letting the landing be re-earned
+export function saveProgress(levelBump = 0) {
+  try {
+    localStorage.setItem(PROGRESS_KEY, JSON.stringify({
+      credits: game.credits,
+      level: game.level + levelBump,
+      lives: game.lives,
+      unlocks: game.unlocks,
+      assistOn: game.assistOn,
+    }));
+  } catch (e) {}
+}
 
 export function fuelCapacity() {
   return START_FUEL + game.unlocks.fuel * FUEL_TANK_STEP;

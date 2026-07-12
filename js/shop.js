@@ -1,8 +1,12 @@
 // Supply depot: spend credits on unlocks between levels (shown when landed).
 
-import { game } from './state.js';
+import { game, saveProgress } from './state.js';
 import { ctx } from './canvas.js';
 import { advance } from './game.js';
+import { gamepad } from './input/gamepad.js';
+
+// note: touch.js imports this module, so touch capability is detected inline
+const touchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
 
 const WEAPON_TIERS = [
   { label: 'BOMBS ×3',          price: 100 },
@@ -58,6 +62,9 @@ export function shopBuy(row) {
   else if (row.id === 'assist') u.assist++;
   else if (row.id === 'fuel') u.fuel++;
   else if (row.id === 'life') { u.livesBought++; game.lives++; }
+  // purchases happen on the shop screen, where the save already points at the
+  // next level — keep it that way
+  saveProgress(1);
 }
 
 export function shopActivate() {
@@ -112,7 +119,12 @@ export function drawShop() {
   ctx.textAlign = 'center';
   ctx.fillStyle = '#666';
   ctx.font = '12px Courier New';
-  ctx.fillText('↑↓ select   ENTER / X buy   SPACE / START launch   or tap a row', cx, top + ph - 10);
+  const hint = gamepad.connected
+    ? 'D-PAD select   A confirm   START launch'
+    : touchDevice
+      ? 'tap a row to buy   tap LAUNCH to lift off'
+      : '↑↓ select   ENTER confirm   SPACE launch';
+  ctx.fillText(hint, cx, top + ph - 10);
   ctx.restore();
 }
 

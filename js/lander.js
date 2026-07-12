@@ -1,6 +1,6 @@
 // The lander: creation, flight physics, touchdown/crash, drawing.
 
-import { game, fuelCapacity, bombsPerAttempt } from './state.js';
+import { game, fuelCapacity, bombsPerAttempt, saveProgress } from './state.js';
 import { ctx } from './canvas.js';
 import {
   GRAVITY, THRUST, ROT_SPEED, SAFE_VX, SAFE_VY, SAFE_ANGLE,
@@ -40,6 +40,7 @@ export function crash() {
   game.state = 'crashed';
   game.lives--;
   explode();
+  saveProgress();
 }
 
 // rot, thrustAmt, and assistHeld are the aggregated control inputs for this frame
@@ -119,6 +120,8 @@ export function updateLander(rot, thrustAmt, assistHeld) {
         game.lives++;
         game.lifeAwarded = true;
       }
+      // save as next level: a refresh on the shop screen can't re-earn this landing
+      saveProgress(1);
     } else {
       crash();
     }

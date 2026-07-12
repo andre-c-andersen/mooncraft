@@ -76,10 +76,10 @@ export function shopActivate() {
 function layout() {
   const { W, H } = game;
   const rows = shopRows();
-  const rowH = 34;
-  const pw = Math.min(W * 0.86, 480);
-  const ph = 64 + rows.length * rowH + 18;
-  const top = Math.min(H / 2 + 34, H - ph - 8); // keep on-screen for short viewports
+  const rowH = 44;
+  const pw = Math.min(W * 0.86, 640);
+  const ph = 80 + rows.length * rowH + 26;
+  const top = Math.min(H / 2 + 36, H - ph - 8); // keep on-screen for short viewports
   return { rows, rowH, pw, ph, top, left: W / 2 - pw / 2 };
 }
 
@@ -90,49 +90,49 @@ export function drawShop() {
   ctx.fillStyle = 'rgba(0, 0, 0, 0.75)';
   ctx.fillRect(left, top, pw, ph);
   ctx.strokeStyle = '#4caf50';
-  ctx.lineWidth = 1.5;
+  ctx.lineWidth = 2;
   ctx.strokeRect(left, top, pw, ph);
 
   ctx.textAlign = 'center';
   ctx.fillStyle = '#4caf50';
-  ctx.font = 'bold 16px Courier New';
-  ctx.fillText('SUPPLY DEPOT — ' + game.credits + ' CR', cx, top + 26);
+  ctx.font = 'bold 21px Courier New';
+  ctx.fillText('SUPPLY DEPOT — ' + game.credits + ' CR', cx, top + 32);
 
   rows.forEach((row, i) => {
-    const y = top + 64 + i * rowH;
+    const y = top + 80 + i * rowH;
     const sel = i === shop.index;
     const affordable = row.price !== null && game.credits >= row.price;
-    ctx.font = (sel ? 'bold ' : '') + '14px Courier New';
+    ctx.font = (sel ? 'bold ' : '') + '18px Courier New';
     ctx.textAlign = 'left';
     ctx.fillStyle = row.maxed ? '#666' : (sel ? '#fff176' : '#e0e0e0');
-    ctx.fillText((sel ? '> ' : '  ') + row.label, left + 18, y);
+    ctx.fillText((sel ? '> ' : '  ') + row.label, left + 24, y);
     ctx.textAlign = 'right';
     if (row.price !== null) {
       ctx.fillStyle = affordable ? '#4caf50' : '#ff5252';
-      ctx.fillText(row.price + ' CR', left + pw - 18, y);
+      ctx.fillText(row.price + ' CR', left + pw - 24, y);
     } else if (row.maxed) {
       ctx.fillStyle = '#666';
-      ctx.fillText('MAXED', left + pw - 18, y);
+      ctx.fillText('MAXED', left + pw - 24, y);
     }
   });
 
   ctx.textAlign = 'center';
   ctx.fillStyle = '#666';
-  ctx.font = '12px Courier New';
+  ctx.font = '15px Courier New';
   const hint = gamepad.connected
     ? 'D-PAD select   A confirm   START launch'
     : touchDevice
       ? 'tap a row to buy   tap LAUNCH to lift off'
       : '↑↓ select   ENTER confirm   SPACE launch';
-  ctx.fillText(hint, cx, top + ph - 10);
+  ctx.fillText(hint, cx, top + ph - 12);
   ctx.restore();
 }
 
 export function shopRowAt(x, y) {
   const { rows, rowH, pw, top, left } = layout();
   for (let i = 0; i < rows.length; i++) {
-    const ry = top + 64 + i * rowH;
-    if (x >= left && x <= left + pw && y >= ry - 22 && y <= ry + 10) return rows[i];
+    const ry = top + 80 + i * rowH;
+    if (x >= left && x <= left + pw && y >= ry - 28 && y <= ry + 14) return rows[i];
   }
   return null;
 }

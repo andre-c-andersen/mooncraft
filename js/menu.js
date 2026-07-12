@@ -72,7 +72,7 @@ export function drawMenu() {
   const { W, H } = game;
   ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
   ctx.fillRect(0, 0, W, H);
-  const top = H / 2 - 140;
+  const top = H / 2 - 190;
   const wide = W >= 700; // two columns; settings-only on narrow screens
   const leftCx = wide ? W * 0.27 : W / 2;
   const rightCx = W * 0.73;
@@ -80,14 +80,14 @@ export function drawMenu() {
   // --- left: settings ---
   ctx.textAlign = 'center';
   ctx.fillStyle = '#4caf50';
-  ctx.font = 'bold 26px Courier New';
+  ctx.font = 'bold 32px Courier New';
   ctx.fillText('SETTINGS', leftCx, top);
 
   menuItems.forEach((it, i) => {
-    const y = top + 56 + i * 48;
+    const y = top + 70 + i * 62;
     const sel = i === menu.index;
     ctx.fillStyle = sel ? '#fff176' : '#e0e0e0';
-    ctx.font = (sel ? 'bold ' : '') + '15px Courier New';
+    ctx.font = (sel ? 'bold ' : '') + '18px Courier New';
     let text = it.label;
     if (it.key) text += '   < ' + it.fmt(settings[it.key]) + ' >';
     ctx.fillText((sel ? '> ' : '') + text + (sel ? ' <' : ''), leftCx, y);
@@ -96,9 +96,9 @@ export function drawMenu() {
       const frac = (settings[it.key] - it.min) / (it.max - it.min);
       ctx.strokeStyle = '#555';
       ctx.lineWidth = 1;
-      ctx.strokeRect(leftCx - 100, y + 8, 200, 7);
+      ctx.strokeRect(leftCx - 130, y + 10, 260, 9);
       ctx.fillStyle = sel ? '#fff176' : '#888';
-      ctx.fillRect(leftCx - 100, y + 8, 200 * frac, 7);
+      ctx.fillRect(leftCx - 130, y + 10, 260 * frac, 9);
     }
   });
 
@@ -107,39 +107,39 @@ export function drawMenu() {
     ctx.strokeStyle = '#333';
     ctx.lineWidth = 1;
     ctx.beginPath();
-    ctx.moveTo(W / 2, top - 20);
-    ctx.lineTo(W / 2, top + 56 + menuItems.length * 48);
+    ctx.moveTo(W / 2, top - 24);
+    ctx.lineTo(W / 2, top + 70 + menuItems.length * 62);
     ctx.stroke();
 
     ctx.textAlign = 'center';
     ctx.fillStyle = '#4caf50';
-    ctx.font = 'bold 26px Courier New';
+    ctx.font = 'bold 32px Courier New';
     ctx.fillText('HOW TO PLAY', rightCx, top);
 
     const { controls, goal } = helpContent();
-    let y = top + 48;
-    ctx.font = '14px Courier New';
+    let y = top + 60;
+    ctx.font = '17px Courier New';
     for (const [key, desc] of controls) {
       ctx.textAlign = 'right';
       ctx.fillStyle = '#fff176';
-      ctx.fillText(key, rightCx - 10, y);
+      ctx.fillText(key, rightCx - 12, y);
       ctx.textAlign = 'left';
       ctx.fillStyle = '#e0e0e0';
-      ctx.fillText(desc, rightCx + 10, y);
-      y += 22;
+      ctx.fillText(desc, rightCx + 12, y);
+      y += 28;
     }
-    y += 14;
+    y += 18;
     ctx.textAlign = 'center';
-    ctx.font = '13px Courier New';
+    ctx.font = '16px Courier New';
     for (const lineText of goal) {
       ctx.fillStyle = lineText.startsWith('*') ? '#666' : '#b0bec5';
       ctx.fillText(lineText, rightCx, y);
-      y += 19;
+      y += 24;
     }
   }
 
   ctx.textAlign = 'center';
   ctx.fillStyle = '#666';
-  ctx.font = '13px Courier New';
-  ctx.fillText('↑↓ select   ←→ adjust   ENTER / A confirm   ESC / B / BACK close', W / 2, top + 56 + menuItems.length * 48 + 10);
+  ctx.font = '16px Courier New';
+  ctx.fillText('↑↓ select   ←→ adjust   ENTER / A confirm   ESC / B / BACK close', W / 2, top + 70 + menuItems.length * 62 + 14);
 }

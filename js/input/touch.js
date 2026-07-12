@@ -15,7 +15,7 @@ export const touch = {
 
 function touchButtons() {
   const { W, H } = game;
-  const r = Math.min(W, H) * 0.085;
+  const r = Math.min(W, H) * 0.105;
   const m = r * 0.7; // margin from screen edges
   const y = H - r - m;
   return {

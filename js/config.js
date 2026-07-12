@@ -1,7 +1,9 @@
 // Gameplay tuning constants.
 
-// fixed logical play area — scaled to fit the screen, letterboxed, same view everywhere
-export const VIEW_W = 1280;
+// fixed logical play area — scaled to fit the screen, letterboxed, same view everywhere.
+// 2:1 splits the difference between phone screens (~19.5:9) and laptop browser
+// viewports (wider than 16:9 once browser chrome takes its slice)
+export const VIEW_W = 1440;
 export const VIEW_H = 720;
 
 export const GRAVITY = 0.018;

@@ -1,6 +1,6 @@
 // Gameplay tuning constants.
 
-export const VERSION = '1.5';
+export const VERSION = '1.7';
 
 // fixed logical play area — scaled to fit the screen, letterboxed, same view everywhere.
 // 2:1 splits the difference between phone screens (~19.5:9) and laptop browser
@@ -28,7 +28,16 @@ export const GEAR_ANGLE_STEP = 0.07;  // extra safe landing angle (rad) per tier
 
 export const ASSIST_LEVEL_RATE = 0.012; // rad/frame — constant angular speed toward the assist target
 export const ASSIST_RETRO_GAIN = 0.35;  // retro assist: target tilt per unit of vx
-export const ASSIST_RETRO_MAX = 1.1;    // radians — max retro tilt
+export const ASSIST_RETRO_MAX = 1.1;    // radians — max assist tilt (retro and landing)
+
+// landing assist: aim thrust to steer onto the nearest pad
+export const LAND_ASSIST_RATE = 0.03;        // rad/frame — the top tier gimbals faster than level/retro
+export const LAND_ASSIST_KP = 0.05;          // velocity-error correction gain
+export const LAND_ASSIST_DRIFT = 0.02;       // desired drift per px of horizontal offset…
+export const LAND_ASSIST_DRIFT_MAX = 2.0;    // …capped at this approach speed
+export const LAND_ASSIST_DESCENT = 0.004;    // desired descent per px of height above the pad…
+export const LAND_ASSIST_DESCENT_MIN = 0.3;  // …between a soft floor near touchdown
+export const LAND_ASSIST_DESCENT_MAX = 1.4;  // …and a brisk ceiling when high up
 
 export const FIRE_INTERVAL = 150;      // frames between shots per cannon at low levels…
 export const FIRE_INTERVAL_MIN = 70;   // …shrinking to this floor at high levels

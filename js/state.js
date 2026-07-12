@@ -70,7 +70,7 @@ export const game = {
 
 export function applyCheats() {
   if (!cheat.max) return;
-  game.unlocks = { weapon: 4, assist: 2, shield: 3, gear: 3, fuel: 3, livesBought: 0 };
+  game.unlocks = { weapon: 4, assist: 3, shield: 3, gear: 3, fuel: 3, livesBought: 0 };
   game.lives = 99;
   game.credits = Math.max(game.credits, 9999);
 }

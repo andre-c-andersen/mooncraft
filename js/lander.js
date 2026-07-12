@@ -5,9 +5,19 @@ import { ctx } from './canvas.js';
 import {
   GRAVITY, THRUST, ROT_SPEED, SAFE_VX,
   ASSIST_LEVEL_RATE, ASSIST_RETRO_GAIN, ASSIST_RETRO_MAX,
+  LAND_ASSIST_RATE, LAND_ASSIST_KP, LAND_ASSIST_DRIFT, LAND_ASSIST_DRIFT_MAX,
+  LAND_ASSIST_DESCENT, LAND_ASSIST_DESCENT_MIN, LAND_ASSIST_DESCENT_MAX,
   SHIELD_COOLDOWN, SHIELD_RECHARGE_FRAMES,
 } from './config.js';
 import { terrainYAt, padAt } from './terrain.js';
+
+// highest terrain (smallest y) along the horizontal span between two x's
+function terrainCrestBetween(x1, x2) {
+  const lo = Math.min(x1, x2), hi = Math.max(x1, x2);
+  let crest = Infinity;
+  for (let x = lo; x <= hi; x += 40) crest = Math.min(crest, terrainYAt(x));
+  return Math.min(crest, terrainYAt(hi));
+}
 
 export function createLander() {
   return {
@@ -80,6 +90,43 @@ export function hitShip() {
   crash();
 }
 
+// landing assist: the tilt that makes thrust steer the ship onto the
+// nearest pad — correct the velocity error toward a gentle approach,
+// while countering gravity
+function landingAssistAngle(lander) {
+  let pad = null, best = Infinity;
+  for (const p of game.pads) {
+    const d = Math.abs((p.x1 + p.x2) / 2 - lander.x);
+    if (d < best) { best = d; pad = p; }
+  }
+  if (!pad) return 0;
+  const padCx = (pad.x1 + pad.x2) / 2;
+  const dx = padCx - lander.x;
+  const dy = pad.y - 12 - lander.y; // pad surface, ship-height adjusted
+  const desVx = Math.max(-LAND_ASSIST_DRIFT_MAX, Math.min(LAND_ASSIST_DRIFT_MAX, dx * LAND_ASSIST_DRIFT));
+  let desVy;
+  // commit to the final descent only when well inside the pad's width
+  const descentGate = Math.min(40, (pad.x2 - pad.x1) * 0.3);
+  if (Math.abs(dx) > descentGate) {
+    // translate phase: cruise above both the pad and every ridge on the way
+    const cruiseY = Math.min(pad.y - 140, terrainCrestBetween(lander.x, padCx) - 110);
+    desVy = Math.max(-1.2, Math.min(1.0, (cruiseY - lander.y) * 0.01));
+  } else if (dy > 0) {
+    // final descent, slowing as the pad nears
+    desVy = Math.min(LAND_ASSIST_DESCENT_MAX, LAND_ASSIST_DESCENT_MIN + dy * LAND_ASSIST_DESCENT);
+  } else {
+    desVy = LAND_ASSIST_DESCENT_MIN; // below pad level (in a crater): settle slowly
+  }
+  // thrust acceleration is (sin θ, −cos θ)·THRUST, so aim it along the
+  // desired correction; gravity compensation keeps θ upright when parked.
+  // ay is clamped upward-only: "descend faster" is expressed by the player
+  // cutting throttle, never by aiming the nozzle past horizontal
+  const ax = (desVx - lander.vx) * LAND_ASSIST_KP;
+  const ay = Math.min((desVy - lander.vy) * LAND_ASSIST_KP - GRAVITY, -0.005);
+  const target = Math.atan2(ax, -ay);
+  return Math.max(-ASSIST_RETRO_MAX, Math.min(ASSIST_RETRO_MAX, target));
+}
+
 // rot, thrustAmt, and assistHeld are the aggregated control inputs for this frame
 export function updateLander(rot, thrustAmt, assistHeld) {
   const lander = game.lander;
@@ -97,18 +144,23 @@ export function updateLander(rot, thrustAmt, assistHeld) {
   if (rot) {
     lander.angle += ROT_SPEED * rot;
   } else if (assistHeld && game.unlocks.assist >= 1) {
-    // level assist eases upright; retro assist instead tilts against
-    // horizontal travel so thrusting brakes the ship in x
+    // level assist eases upright; retro assist tilts against horizontal
+    // travel so thrusting brakes the ship in x; landing assist aims the
+    // rocket so thrusting steers onto the nearest pad
     let target = 0;
-    if (game.unlocks.assist >= 2) {
+    if (game.unlocks.assist >= 3) {
+      target = landingAssistAngle(lander);
+    } else if (game.unlocks.assist >= 2) {
       target = Math.max(-ASSIST_RETRO_MAX, Math.min(ASSIST_RETRO_MAX, -lander.vx * ASSIST_RETRO_GAIN));
     }
     let dev = (lander.angle - target) % (Math.PI * 2);
     if (dev > Math.PI) dev -= Math.PI * 2;
     if (dev < -Math.PI) dev += Math.PI * 2;
-    // turn at a constant angular speed, stopping dead on the target
-    if (Math.abs(dev) <= ASSIST_LEVEL_RATE) lander.angle = target;
-    else lander.angle = target + dev - Math.sign(dev) * ASSIST_LEVEL_RATE;
+    // turn at a constant angular speed, stopping dead on the target;
+    // the landing tier gimbals faster so it can track its moving target
+    const rate = game.unlocks.assist >= 3 ? LAND_ASSIST_RATE : ASSIST_LEVEL_RATE;
+    if (Math.abs(dev) <= rate) lander.angle = target;
+    else lander.angle = target + dev - Math.sign(dev) * rate;
   }
 
   lander.thrusting = false;

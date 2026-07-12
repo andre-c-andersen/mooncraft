@@ -1,4 +1,4 @@
-# 🌙 Moon Lander — v1.5
+# 🌙 Moon Lander — v1.7
 
 A classic lunar lander arcade game for the browser — with sci-fi defense cannons, laser turrets, droppable bombs, touch controls, and full Xbox controller support. Vanilla HTML/CSS/JS with ES modules, no dependencies, no build step.
 
@@ -23,6 +23,8 @@ Then open http://localhost:8000 (any static file server works, e.g. `npx serve`)
 For debugging, pick your starting level with a query param: `http://localhost:8000/?level=4`.
 
 Cheats, combinable with `level`: `?cheat=max` starts with every unlock bought and 99 lives; `?cheat=god` adds invulnerability (the ship bounces off terrain and shrugs off slugs, lasers, asteroids, and blasts). Cheated runs never touch your saved progress.
+
+Press **P** to toggle a performance overlay (fps, sim step rate, cpu time, entity counts).
 
 ## Tests
 
@@ -68,7 +70,7 @@ Land gently on a pad. A safe landing needs low speed and a nearly upright ship �
 Landings earn **credits**, spent in the supply depot (shown after every landing):
 
 - **Weapons**: bombs ×3 → triple bomb (whole rack in one volley) → super bombs (bigger blast that craters the terrain) → triple super bomb. Destroyed cannons pay 75 credits.
-- **Fly assist** (toggled with the assist button): level assist eases the ship upright; retro assist tilts it against your horizontal travel so thrusting brakes you.
+- **Fly assist** (toggled with the assist button): level assist eases the ship upright; retro assist tilts it against your horizontal travel so thrusting brakes you; landing assist aims the rocket so thrusting steers you onto the nearest pad — you still fly the throttle.
 - **Shields**: three expensive tiers — each charge blocks exactly one projectile (a slug, a laser beam, an asteroid, or a blast; not bad landings). No immunity between hits: sustained fire will chew through the charges. A consumed charge recharges after ~4 quiet seconds; taking a hit restarts the timer.
 - **Landing gear**: three tiers — each raises how much descent speed and landing angle a touchdown tolerates; the docking indicator's box widens to match.
 - **Fuel tanks**: three capacity upgrades.

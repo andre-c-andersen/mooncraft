@@ -57,32 +57,34 @@ assert(game.lander.fuel < fuelBefore, 'thrusting burns fuel');
 game.state = 'landed';
 runFrames(1); // shop opens
 assert(shop.index === 6, 'LAUNCH is preselected when the shop opens');
-game.credits = 3500;
+game.credits = 5000;
 shop.index = 0;
 pressKey('Enter'); // buy weapon tier 1: BOMBS ×3 (100)
-assert(game.unlocks.weapon === 1 && game.credits === 3400, 'bought bombs unlock');
+assert(game.unlocks.weapon === 1 && game.credits === 4900, 'bought bombs unlock');
 pressKey('Enter'); // tier 2: TRIPLE BOMB (250)
-assert(game.unlocks.weapon === 2 && game.credits === 3150, 'bought triple bomb');
+assert(game.unlocks.weapon === 2 && game.credits === 4650, 'bought triple bomb');
 pressKey('ArrowDown'); // assist row
 pressKey('Enter'); // LEVEL ASSIST (150)
-assert(game.unlocks.assist === 1 && game.credits === 3000, 'bought level assist');
+assert(game.unlocks.assist === 1 && game.credits === 4500, 'bought level assist');
 pressKey('Enter'); // RETRO ASSIST (700)
-assert(game.unlocks.assist === 2 && game.credits === 2300, 'bought retro assist');
+assert(game.unlocks.assist === 2 && game.credits === 3800, 'bought retro assist');
+pressKey('Enter'); // LANDING ASSIST (1400)
+assert(game.unlocks.assist === 3 && game.credits === 2400, 'bought landing assist');
 pressKey('ArrowDown'); // shield row
 pressKey('Enter'); // SHIELD +1 HIT (600)
-assert(game.unlocks.shield === 1 && game.credits === 1700, 'bought shield tier 1');
+assert(game.unlocks.shield === 1 && game.credits === 1800, 'bought shield tier 1');
 pressKey('ArrowDown'); // gear row
 pressKey('Enter'); // LANDING GEAR MK2 (200)
-assert(game.unlocks.gear === 1 && game.credits === 1500, 'bought landing gear');
+assert(game.unlocks.gear === 1 && game.credits === 1600, 'bought landing gear');
 pressKey('ArrowDown'); // fuel row
 pressKey('Enter'); // FUEL TANK (120)
-assert(game.unlocks.fuel === 1 && game.credits === 1380, 'bought fuel tank');
+assert(game.unlocks.fuel === 1 && game.credits === 1480, 'bought fuel tank');
 pressKey('ArrowDown'); // life row
 const livesBefore = game.lives;
 pressKey('Enter'); // EXTRA LIFE (100)
-assert(game.lives === livesBefore + 1 && game.credits === 1280, 'bought extra life');
+assert(game.lives === livesBefore + 1 && game.credits === 1380, 'bought extra life');
 pressKey('Enter'); // second life should cost more (180)
-assert(game.credits === 1100, 'life price escalates (180 for the second)');
+assert(game.credits === 1200, 'life price escalates (180 for the second)');
 
 const levelBefore = game.level;
 pressKey(' '); // launch
@@ -146,6 +148,8 @@ pressKey('b');
 assert(game.lander.bombs === 0 && game.bombs.length === 3, 'triple bomb releases all 3 at once');
 
 // retro assist: F toggles it on; ship tilts against x-travel
+// (pin the tier to 2 so landing assist doesn't take over)
+game.unlocks.assist = 2;
 game.lander.vx = 3;
 game.lander.vy = 0;
 game.lander.y = game.H * 0.2;
@@ -157,6 +161,38 @@ assert(game.lander.angle < -0.3, 'retro assist tilts against +vx, angle=' + game
 pressKey('f'); // toggle off
 runFrames(2);
 assert(!game.assistActive, 'second press toggles assist off');
+game.unlocks.assist = 3;
+
+// landing assist: aims the rocket toward the nearest pad
+{
+  const levelWas = game.level;
+  game.level = 2;       // hazard-free window
+  game.cannons = [];
+  game.asteroids = [];
+  // park the ship left of a pad that is its own nearest pad
+  let padX = null;
+  for (const p of game.pads) {
+    const cx = (p.x1 + p.x2) / 2;
+    const probe = cx - 160;
+    const nearest = game.pads.reduce((a, b) =>
+      Math.abs((a.x1 + a.x2) / 2 - probe) < Math.abs((b.x1 + b.x2) / 2 - probe) ? a : b);
+    if (nearest === p) { padX = cx; break; }
+  }
+  assert(padX !== null, 'found a pad for the landing assist test');
+  game.lander.x = padX - 160;
+  game.lander.y = 150;
+  game.lander.vx = 0;
+  game.lander.vy = 0;
+  game.lander.angle = 0;
+  pressKey('f'); // toggle on
+  runFrames(50);
+  assert(game.assistActive, 'landing assist engaged');
+  assert(game.lander.angle > 0.08,
+    'landing assist tilts toward the pad on the right, angle=' + game.lander.angle.toFixed(2));
+  pressKey('f'); // toggle off
+  runFrames(2);
+  game.level = levelWas;
+}
 
 // super bombs
 game.unlocks.weapon = 4;
@@ -181,6 +217,16 @@ assert(game.bombs.length === 3 && game.bombs.every(b => b.super), 'super bombs f
   const padY = game.pads[0].y;
   detonate((game.pads[0].x1 + game.pads[0].x2) / 2, padY, true);
   assert(game.pads[0].y === padY, 'pads are never deformed');
+}
+
+// perf overlay toggles with P and draws without breaking the loop
+{
+  const { perf } = await importGame('perf.js');
+  pressKey('p');
+  assert(perf.visible, 'P shows the perf overlay');
+  runFrames(5);
+  pressKey('p');
+  assert(!perf.visible, 'P hides the perf overlay');
 }
 
 // menu still pauses

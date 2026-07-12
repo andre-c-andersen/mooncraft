@@ -5,6 +5,7 @@ import { menu, menuMove, menuAdjust, menuActivate } from '../menu.js';
 import { dropBomb } from '../bombs.js';
 import { advance } from '../game.js';
 import { shopMove, shopActivate } from '../shop.js';
+import { perf } from '../perf.js';
 
 export const keys = {};
 
@@ -23,6 +24,7 @@ window.addEventListener('keydown', e => {
   keys[e.key] = true;
   if ((e.key === 'b' || e.key === 's' || e.key === 'ArrowDown') && !e.repeat) dropBomb();
   if (e.key === 'f' && !e.repeat && game.unlocks.assist >= 1) game.assistOn = !game.assistOn;
+  if (e.key === 'p' && !e.repeat) perf.visible = !perf.visible;
   if (game.state === 'landed') {
     // shop is open: navigate, buy, or launch
     if (e.key === 'ArrowUp') shopMove(-1);

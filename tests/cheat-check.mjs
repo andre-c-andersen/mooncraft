@@ -7,7 +7,7 @@ const h = setup({ search: '?cheat=god&level=25' });
 await importGame('main.js');
 const { game } = await importGame('state.js');
 
-assert(game.unlocks.weapon === 4 && game.unlocks.assist === 2 && game.unlocks.fuel === 3
+assert(game.unlocks.weapon === 4 && game.unlocks.assist === 3 && game.unlocks.fuel === 3
   && game.unlocks.shield === 3 && game.unlocks.gear === 3, 'god: all unlocks maxed');
 assert(game.lives === 99, 'god: 99 lives');
 assert(game.credits >= 9999, 'god: credits pile');

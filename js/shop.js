@@ -15,8 +15,9 @@ const WEAPON_TIERS = [
   { label: 'TRIPLE SUPER BOMB', price: 900 },
 ];
 const ASSIST_TIERS = [
-  { label: 'LEVEL ASSIST',  price: 150 },
-  { label: 'RETRO ASSIST',  price: 700 },
+  { label: 'LEVEL ASSIST',   price: 150 },
+  { label: 'RETRO ASSIST',   price: 700 },
+  { label: 'LANDING ASSIST', price: 1400 },
 ];
 const SHIELD_TIERS = [
   { label: 'SHIELD +1 HIT', price: 600 },

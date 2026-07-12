@@ -162,8 +162,9 @@ export function drawHUD() {
     ctx.fillText('\u{1F3AE} CONTROLLER', rightX, 38);
   }
   if (unlocks.assist >= 1) {
+    const assistName = unlocks.assist >= 3 ? 'LANDING' : unlocks.assist >= 2 ? 'RETRO' : 'LEVEL';
     ctx.fillStyle = game.assistActive ? '#4caf50' : '#666';
-    ctx.fillText((unlocks.assist >= 2 ? 'RETRO' : 'LEVEL') + ' ASSIST ' + (game.assistActive ? '●' : '○'), rightX, 64);
+    ctx.fillText(assistName + ' ASSIST ' + (game.assistActive ? '●' : '○'), rightX, 64);
   }
   if (cheat.max) {
     ctx.fillStyle = '#ff4081';

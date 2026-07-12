@@ -76,6 +76,7 @@ function helpContent() {
     ['↑ SPACE or W', 'thrust'],
     ['B, S or ↓', 'drop bomb *'],
     ['F', 'toggle fly assist *'],
+    ['P', 'performance metrics'],
     ['ESC', 'this menu'],
   ];
   const goal = [

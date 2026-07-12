@@ -16,6 +16,7 @@ import { settings } from './settings.js';
 import { keys } from './input/keyboard.js';
 import { readGamepad } from './input/gamepad.js';
 import { touch, drawTouchControls, drawTouchGear } from './input/touch.js';
+import { perfFrame, drawPerf } from './perf.js';
 
 function update() {
   const { pad, edge } = readGamepad();
@@ -100,12 +101,17 @@ function step() {
 }
 
 function loop(now) {
-  if (lastTime !== null) acc = Math.min(acc + now - lastTime, MAX_CATCHUP);
+  const frameDt = lastTime === null ? 0 : now - lastTime;
+  if (lastTime !== null) acc = Math.min(acc + frameDt, MAX_CATCHUP);
   lastTime = now;
+  let steps = 0;
+  const t0 = performance.now();
   while (acc >= STEP_MS) {
     step();
     acc -= STEP_MS;
+    steps++;
   }
+  const t1 = performance.now();
   ctx.clearRect(0, 0, game.W, game.H);
   drawStars();
   drawTerrain();
@@ -121,6 +127,8 @@ function loop(now) {
   drawTouchControls();
   if (menu.open) drawMenu();
   drawTouchGear();
+  if (frameDt > 0) perfFrame(frameDt, steps, t1 - t0, performance.now() - t1);
+  drawPerf();
   requestAnimationFrame(loop);
 }
 

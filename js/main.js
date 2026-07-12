@@ -77,9 +77,17 @@ function update() {
   updateLander(rot, thrustAmt, game.assistOn);
 }
 
+// Physics constants are tuned per-frame at 60 Hz, so the simulation runs on
+// a fixed 60 Hz timestep decoupled from the display refresh: 120 Hz phones
+// and 144 Hz monitors no longer run the game faster, and slow devices catch
+// up instead of playing in slow motion.
+const STEP_MS = 1000 / 60;
+const MAX_CATCHUP = 5 * STEP_MS; // don't fast-forward after a background tab returns
+let lastTime = null;
+let acc = 0;
 let prevState = '';
 
-function loop() {
+function step() {
   update();
   if (game.state === 'landed' && prevState !== 'landed') shopSelectLaunch();
   prevState = game.state;
@@ -88,6 +96,15 @@ function loop() {
     updateBombs();
     updateAsteroids();
     updateParticles();
+  }
+}
+
+function loop(now) {
+  if (lastTime !== null) acc = Math.min(acc + now - lastTime, MAX_CATCHUP);
+  lastTime = now;
+  while (acc >= STEP_MS) {
+    step();
+    acc -= STEP_MS;
   }
   ctx.clearRect(0, 0, game.W, game.H);
   drawStars();
@@ -114,4 +131,4 @@ resize();
 genStars();
 genTerrain();
 reset();
-loop();
+requestAnimationFrame(loop);

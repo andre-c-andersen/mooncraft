@@ -65,6 +65,12 @@ export function shopMove(d) {
   shop.index = (shop.index + d + n) % n;
 }
 
+// LAUNCH is the default selection whenever the shop opens, so a bare
+// ENTER / A lifts off instead of buying something by accident
+export function shopSelectLaunch() {
+  shop.index = shopRows().length - 1;
+}
+
 export function shopBuy(row) {
   if (row.id === 'launch') { advance(); return; }
   if (row.maxed || row.price === null || game.credits < row.price) return;

@@ -10,7 +10,7 @@ import { updateBombs, drawBombs, dropBomb } from './bombs.js';
 import { updateAsteroids, drawAsteroids } from './asteroids.js';
 import { updateParticles, drawParticles } from './particles.js';
 import { drawHUD } from './hud.js';
-import { drawShop, shopMove, shopActivate } from './shop.js';
+import { drawShop, shopMove, shopActivate, shopSelectLaunch } from './shop.js';
 import { menu, menuMove, menuAdjust, menuActivate, drawMenu } from './menu.js';
 import { settings } from './settings.js';
 import { keys } from './input/keyboard.js';
@@ -77,8 +77,12 @@ function update() {
   updateLander(rot, thrustAmt, game.assistOn);
 }
 
+let prevState = '';
+
 function loop() {
   update();
+  if (game.state === 'landed' && prevState !== 'landed') shopSelectLaunch();
+  prevState = game.state;
   if (!menu.open) {
     updateCannons();
     updateBombs();

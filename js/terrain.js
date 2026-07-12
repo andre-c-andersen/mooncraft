@@ -10,11 +10,13 @@ export function genStars() {
   }
 }
 
-// markedly different landing difficulties: wide & cheap → narrow & lucrative
+// markedly different landing difficulties: wide & cheap → narrow & lucrative.
+// easier pads retire as levels climb: the easy one is gone from level 10,
+// the medium from level 20 — only the hard pad remains after that
 const PAD_TYPES = [
-  { w: 2.6, mult: 1, color: '#4caf50' },  // easy: wide
-  { w: 1.6, mult: 2, color: '#ffb300' },  // medium
-  { w: 1.0, mult: 3, color: '#ff5252' },  // hard: barely wider than the ship
+  { w: 2.6, mult: 1, color: '#4caf50', maxLevel: 9 },   // easy: wide
+  { w: 1.6, mult: 2, color: '#ffb300', maxLevel: 19 },  // medium
+  { w: 1.0, mult: 3, color: '#ff5252', maxLevel: Infinity }, // hard: barely wider than the ship
 ];
 
 export function genTerrain() {
@@ -31,14 +33,15 @@ export function genTerrain() {
   const baseY = H * (0.55 + Math.random() * 0.12);
   const shapeAt = t => baseY + depth * (1 - 4 * (t - 0.5) ** 2) - depth / 2;
 
-  // choose non-adjacent pad segments, one per difficulty, in random order
+  // choose non-adjacent pad segments, one per difficulty still in play
+  const inPlay = PAD_TYPES.filter(t => game.level <= t.maxLevel);
   const padSegs = [];
-  while (padSegs.length < PAD_TYPES.length) {
+  while (padSegs.length < inPlay.length) {
     const s = 3 + Math.floor(Math.random() * (segs - 6));
     if (padSegs.every(p => Math.abs(p - s) >= 3)) padSegs.push(s);
   }
   padSegs.sort((a, b) => a - b);
-  const types = [...PAD_TYPES].sort(() => Math.random() - 0.5);
+  const types = [...inPlay].sort(() => Math.random() - 0.5);
   let x = 0;
   let y = shapeAt(0);
   game.terrain.push({ x, y });

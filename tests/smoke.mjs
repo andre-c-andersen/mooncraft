@@ -15,9 +15,20 @@ assert(game.cannons.length >= 5 && game.cannons.length <= 10,
   'several cannons at level 20, got ' + game.cannons.length);
 assert(game.cannons.some(c => c.type === 'laser'), 'lasers present');
 assert(game.cannons[0].type === 'gun' && game.cannons[1].type === 'laser', 'alternation starts gun, laser');
-assert(game.pads.length === 3, '3 landing pads');
-assert([...game.pads.map(p => p.mult)].sort((a, b) => a - b).join() === '1,2,3', 'pad multipliers are 1, 2, 3');
+assert(game.pads.length === 1 && game.pads[0].mult === 3, 'only the hard pad at level 20+');
 assert(game.credits === 0 && game.score === undefined, 'credits replace score');
+
+// easier pads retire as levels climb
+{
+  const { genTerrain } = await importGame('terrain.js');
+  const multsAt = l => { game.level = l; genTerrain(); return game.pads.map(p => p.mult).sort((a, b) => a - b).join(); };
+  assert(multsAt(9) === '1,2,3', 'all three pads up to level 9');
+  assert(multsAt(10) === '2,3', 'easy pad gone from level 10');
+  assert(multsAt(19) === '2,3', 'medium pad survives to level 19');
+  assert(multsAt(20) === '3', 'only the hard pad from level 20');
+  game.level = 20;
+  genTerrain(); // restore level-20 terrain for the rest of the run
+}
 assert(game.lander.bombs === 0, 'no bombs before the unlock is bought');
 
 // bomb key does nothing while weapon is locked

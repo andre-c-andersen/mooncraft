@@ -1,4 +1,4 @@
-# 🌙 Moon Lander — v1.7
+# 🌙 Moon Lander — v1.8
 
 A classic lunar lander arcade game for the browser — with sci-fi defense cannons, laser turrets, droppable bombs, touch controls, and full Xbox controller support. Vanilla HTML/CSS/JS with ES modules, no dependencies, no build step.
 
@@ -65,7 +65,7 @@ js/
 
 ## How to play
 
-Land gently on a pad. A safe landing needs low speed and a nearly upright ship — watch the docking indicator: keep the ball inside the brackets and land when it reads LAND OK. Pads come in three difficulties: wide green ×1, medium amber ×2, and narrow red ×3 — the multiplier scales your landing credits, and leftover fuel pays a bonus. If you fly off the top of the screen, an amber marker on the top border tracks your position and height.
+Land gently on a pad. A safe landing needs low speed and a nearly upright ship — watch the docking indicator: keep the ball inside the brackets and land when it reads LAND OK. Pads come in three difficulties: wide green ×1, medium amber ×2, and narrow red ×3 — the multiplier scales your landing credits, and leftover fuel pays a bonus. The easy pad disappears from level 10 and the medium from level 20 — after that, only the narrow ×3 pad remains. If you fly off the top of the screen, an amber marker on the top border tracks your position and height.
 
 Landings earn **credits**, spent in the supply depot (shown after every landing):
 

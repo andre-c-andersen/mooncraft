@@ -2,7 +2,7 @@
 
 import { game, fuelCapacity, safeVY, safeAngle, cheat } from './state.js';
 import { ctx } from './canvas.js';
-import { SAFE_VX, START_BOMBS } from './config.js';
+import { SAFE_VX, START_BOMBS, VERSION } from './config.js';
 import { padAt } from './terrain.js';
 import { gamepad } from './input/gamepad.js';
 import { touch } from './input/touch.js';
@@ -168,6 +168,11 @@ export function drawHUD() {
     ctx.fillStyle = '#ff4081';
     ctx.fillText(cheat.god ? 'GOD MODE' : 'CHEATS ON', W - 24, 90);
   }
+
+  // version tag, bottom-right corner
+  ctx.fillStyle = '#444';
+  ctx.font = '13px Courier New';
+  ctx.fillText('v' + VERSION, W - 24, H - 14);
 
   ctx.textAlign = 'center';
   const restartHint = gamepad.connected ? 'Press SPACE or A' : (touch.enabled ? 'Tap screen' : 'Press SPACE');

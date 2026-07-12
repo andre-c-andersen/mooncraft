@@ -1,5 +1,7 @@
 // Gameplay tuning constants.
 
+export const VERSION = '1.0';
+
 // fixed logical play area — scaled to fit the screen, letterboxed, same view everywhere.
 // 2:1 splits the difference between phone screens (~19.5:9) and laptop browser
 // viewports (wider than 16:9 once browser chrome takes its slice)

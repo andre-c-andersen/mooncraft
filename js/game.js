@@ -14,8 +14,9 @@ export function reset() {
   game.bombs = [];
   game.booms = [];
   placeCannons(); // destroyed cannons come back on retry
-  // grace period before the cannons open fire, staggered per cannon
-  game.cannons.forEach((c, i) => { c.cooldown = 120 + i * 75; });
+  // grace period before the cannons open fire, randomly spread — a linear
+  // per-index stagger made high cannon counts fire in a one-by-one chain
+  game.cannons.forEach(c => { c.cooldown = 120 + Math.random() * 150; });
   resetAsteroids();
   game.lifeAwarded = false;
   game.state = 'flying';

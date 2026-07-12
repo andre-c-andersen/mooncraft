@@ -1,4 +1,4 @@
-# 🌙 Moon Lander — v1.3
+# 🌙 Moon Lander — v1.4
 
 A classic lunar lander arcade game for the browser — with sci-fi defense cannons, laser turrets, droppable bombs, touch controls, and full Xbox controller support. Vanilla HTML/CSS/JS with ES modules, no dependencies, no build step.
 

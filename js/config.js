@@ -21,7 +21,7 @@ export const FUEL_TANK_STEP = 150; // extra capacity per fuel tank upgrade
 export const START_BOMBS = 3;
 export const START_LIVES = 3;
 
-export const SHIELD_COOLDOWN = 45;    // immunity frames after the shield absorbs a hit
+export const SHIELD_COOLDOWN = 45;    // frames the shield flash lasts after an absorb (visual only)
 export const GEAR_VY_STEP = 0.35;     // extra safe descent speed per landing-gear tier
 export const GEAR_ANGLE_STEP = 0.07;  // extra safe landing angle (rad) per tier
 

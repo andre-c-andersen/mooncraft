@@ -100,19 +100,28 @@ assert(Math.abs(safeVY() - 2.15) < 1e-9, 'landing gear raises safe descent speed
     'progress persisted to localStorage');
 }
 
-// shield: absorbs one shot, grants brief immunity, then the next shot kills
+// shield: one charge blocks exactly one projectile — no immunity window
 game.slugs.push({ x: game.lander.x, y: game.lander.y, vx: 0, vy: 0, life: 60 });
 runFrames(1);
 assert(game.state === 'flying' && game.lander.shield === 0, 'shield absorbs a slug');
 game.slugs.push({ x: game.lander.x, y: game.lander.y, vx: 0, vy: 0, life: 60 });
 runFrames(1);
-assert(game.state === 'flying', 'immune while the shield cooldown flashes');
-runFrames(50); // cooldown expires
-game.slugs.push({ x: game.lander.x, y: game.lander.y, vx: 0, vy: 0, life: 60 });
-runFrames(1);
-assert(game.state === 'crashed', 'shot with shield depleted crashes');
+assert(game.state === 'crashed', 'second projectile kills — no blanket immunity');
 pressKey(' '); // retry
 assert(game.lander.shield === 1, 'shield recharges each attempt');
+
+// a laser beam persists for many frames but counts as ONE projectile
+{
+  const fake = {
+    x: game.lander.x - 100, y: game.lander.y, angle: 0, cooldown: 9999,
+    type: 'laser', phase: 'beam', timer: 12, aimTotal: 90, beamAngle: 0, beamHit: false,
+  };
+  game.cannons.push(fake);
+  runFrames(14); // the full beam sweeps over the ship
+  assert(game.state === 'flying' && game.lander.shield === 0,
+    'laser beam consumes exactly one shield charge, not all of them');
+  game.cannons.splice(game.cannons.indexOf(fake), 1);
+}
 
 // triple bomb: one press releases the whole rack
 pressKey('b');

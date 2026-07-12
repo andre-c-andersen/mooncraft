@@ -69,7 +69,7 @@ Landings earn **credits**, spent in the supply depot (shown after every landing)
 
 - **Weapons**: bombs ×3 → triple bomb (whole rack in one volley) → super bombs (bigger blast that craters the terrain) → triple super bomb. Destroyed cannons pay 75 credits.
 - **Fly assist** (toggled with the assist button): level assist eases the ship upright; retro assist tilts it against your horizontal travel so thrusting brakes you.
-- **Shields**: three expensive tiers — each absorbs one hit per attempt (slugs, lasers, asteroids, blasts; not bad landings), with a brief flash of immunity after each absorb.
+- **Shields**: three expensive tiers — each charge blocks exactly one projectile per attempt (a slug, a laser beam, an asteroid, or a blast; not bad landings). No immunity between hits: sustained fire will chew through the charges.
 - **Landing gear**: three tiers — each raises how much descent speed and landing angle a touchdown tolerates; the docking indicator's box widens to match.
 - **Fuel tanks**: three capacity upgrades.
 - **Extra lives**: you start with 3 and earn a free one for landing on even-numbered levels; buy more at prices that climb with each purchase.

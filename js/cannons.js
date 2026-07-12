@@ -78,7 +78,7 @@ export function placeCannons() {
     if (best) game.cannons.push({
       x: best.x, y: best.y, angle: -Math.PI / 2, cooldown: 0,
       type: game.cannons.length % 2 ? 'laser' : 'gun', // alternate: 1st gun, 2nd laser, ...
-      phase: 'idle', timer: 0, aimTotal: 0, beamAngle: 0,
+      phase: 'idle', timer: 0, aimTotal: 0, beamAngle: 0, beamHit: false,
     });
   }
 }
@@ -115,10 +115,14 @@ export function updateCannons() {
       if (c.phase === 'aim' && c.timer <= 0) {
         c.phase = 'beam';
         c.timer = LASER_BEAM_TIME;
+        c.beamHit = false;
       } else if (c.phase === 'beam') {
-        if (game.state === 'flying') {
+        // the beam persists for several frames but counts as ONE projectile:
+        // it lands at most one hit, so it spends at most one shield charge
+        if (game.state === 'flying' && !c.beamHit) {
           const m = laserMuzzle(c), end = laserEndpoint(c);
           if (distToSegment(lander.x, lander.y, m.x, m.y, end.x, end.y) < LASER_HIT_RADIUS) {
+            c.beamHit = true;
             hitShip();
           }
         }

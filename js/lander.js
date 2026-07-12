@@ -62,14 +62,15 @@ function shieldBurst() {
   }
 }
 
-// a shot or impact the shield can absorb (terrain crashes bypass this)
+// a shot or impact the shield can absorb (terrain crashes bypass this).
+// one charge blocks exactly one projectile — there is no immunity window,
+// so simultaneous hits each consume their own charge
 export function hitShip() {
   if (cheat.god) return;
   const lander = game.lander;
-  if (lander.shieldCooldown > 0) return; // still flashing from the last absorb
   if (lander.shield > 0) {
     lander.shield--;
-    lander.shieldCooldown = SHIELD_COOLDOWN;
+    lander.shieldCooldown = SHIELD_COOLDOWN; // visual flash only
     shieldBurst();
     return;
   }

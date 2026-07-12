@@ -30,6 +30,7 @@ export function advance() {
     game.level = game.startLevel;
     game.lives = START_LIVES;
     game.unlocks = freshUnlocks();
+    game.assistOn = false;
     genTerrain();
   }
   reset();

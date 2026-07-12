@@ -54,7 +54,7 @@ Land gently on a pad. A safe landing needs low speed and a nearly upright ship �
 Landings earn **credits**, spent in the supply depot (shown after every landing):
 
 - **Weapons**: bombs ×3 → triple bomb (whole rack in one volley) → super bombs (bigger blast) → triple super bomb. Destroyed cannons pay 75 credits.
-- **Fly assist** (hold the assist button): level assist eases the ship upright; retro assist tilts it against your horizontal travel so thrusting brakes you.
+- **Fly assist** (toggled with the assist button): level assist eases the ship upright; retro assist tilts it against your horizontal travel so thrusting brakes you.
 - **Fuel tanks**: three capacity upgrades.
 - **Extra lives**: you start with 3 and earn a free one for landing on even-numbered levels; buy more at prices that climb with each purchase.
 
@@ -67,7 +67,7 @@ From level 2, cannons appear (one more every other level, up to 10): guns fire s
 | ← / → (or A / D) | Rotate |
 | ↑ / Space (or W) | Thrust |
 | B / S / ↓ | Drop bomb (once unlocked) |
-| F | Fly assist — tap to toggle, hold to engage (once unlocked) |
+| F | Toggle fly assist (once unlocked) |
 | ESC | Settings menu |
 | ↑↓ / Enter | Select / buy in the shop |
 | Space | Launch next level / retry |
@@ -80,7 +80,7 @@ From level 2, cannons appear (one more every other level, up to 10): guns fire s
 | Right trigger | Thrust (analog throttle) |
 | A | Full thrust / launch / retry |
 | B / LB | Drop bomb (once unlocked) |
-| X | Fly assist (tap to toggle, hold to engage) · buy in shop |
+| X | Toggle fly assist · buy in shop |
 | Back | Settings menu |
 
 The settings menu has adjustable rotation sensitivity, stick deadzone, and trigger threshold — saved in your browser.

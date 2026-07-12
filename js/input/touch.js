@@ -11,7 +11,6 @@ export const touch = {
   enabled: 'ontouchstart' in window || navigator.maxTouchPoints > 0,
   rot: 0,
   thrust: false,
-  assist: false,
 };
 
 function touchButtons() {
@@ -41,14 +40,12 @@ function inButton(b, x, y) {
 function readTouches(e) {
   touch.rot = 0;
   touch.thrust = false;
-  touch.assist = false;
   const btns = touchButtons();
   for (const t of e.touches) {
     const p = toLogical(t.clientX, t.clientY);
     if (inButton(btns.left, p.x, p.y)) touch.rot -= 1;
     if (inButton(btns.right, p.x, p.y)) touch.rot += 1;
     if (inButton(btns.thrust, p.x, p.y)) touch.thrust = true;
-    if (buttonUnlocked('assist') && inButton(btns.assist, p.x, p.y)) touch.assist = true;
   }
 }
 
@@ -58,6 +55,7 @@ canvas.addEventListener('touchstart', e => {
   for (const t of e.changedTouches) {
     const p = toLogical(t.clientX, t.clientY);
     if (buttonUnlocked('bomb') && inButton(btns.bomb, p.x, p.y)) dropBomb();
+    if (buttonUnlocked('assist') && inButton(btns.assist, p.x, p.y)) game.assistOn = !game.assistOn;
   }
   if (game.state === 'landed') {
     // shop taps: tap a row to buy, tap LAUNCH to continue
@@ -90,7 +88,7 @@ export function drawTouchControls() {
     const b = btns[name];
     const active = (name === 'left' && touch.rot < 0) || (name === 'right' && touch.rot > 0)
                 || (name === 'thrust' && touch.thrust)
-                || (name === 'assist' && touch.assist);
+                || (name === 'assist' && game.assistOn);
     const disabled = name === 'bomb' && game.lander.bombs <= 0;
     ctx.globalAlpha = disabled ? 0.15 : (active ? 0.6 : 0.3);
     ctx.beginPath();

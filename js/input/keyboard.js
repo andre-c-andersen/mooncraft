@@ -22,6 +22,7 @@ window.addEventListener('keydown', e => {
   if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' ','w','a','s','d','b','f'].includes(e.key)) e.preventDefault();
   keys[e.key] = true;
   if ((e.key === 'b' || e.key === 's' || e.key === 'ArrowDown') && !e.repeat) dropBomb();
+  if (e.key === 'f' && !e.repeat && game.unlocks.assist >= 1) game.assistOn = !game.assistOn;
   if (game.state === 'landed') {
     // shop is open: navigate, buy, or launch
     if (e.key === 'ArrowUp') shopMove(-1);

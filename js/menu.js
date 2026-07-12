@@ -40,19 +40,19 @@ function helpContent() {
     ['STICK / D-PAD', 'rotate'],
     ['A or RT', 'thrust'],
     ['B / LB', 'drop bomb *'],
-    ['X', 'assist: tap=toggle, hold *'],
+    ['X', 'toggle fly assist *'],
     ['BACK', 'this menu'],
   ] : touchDevice ? [
     ['◀ ▶', 'rotate'],
     ['▲', 'thrust'],
     ['B', 'drop bomb *'],
-    ['A', 'assist: tap=toggle, hold *'],
+    ['A', 'toggle fly assist *'],
     ['TAP ROWS', 'buy in depot'],
   ] : [
     ['← → or A / D', 'rotate'],
     ['↑ SPACE or W', 'thrust'],
     ['B, S or ↓', 'drop bomb *'],
-    ['F', 'assist: tap=toggle, hold *'],
+    ['F', 'toggle fly assist *'],
     ['ESC', 'this menu'],
   ];
   const goal = [

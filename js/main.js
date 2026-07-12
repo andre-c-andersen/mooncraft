@@ -15,23 +15,6 @@ import { settings } from './settings.js';
 import { keys } from './input/keyboard.js';
 import { readGamepad } from './input/gamepad.js';
 import { touch, drawTouchControls } from './input/touch.js';
-import { ASSIST_TAP_FRAMES } from './config.js';
-
-// fly assist: tap toggles it on/off, a long press works as hold-to-engage
-let assistLatch = false;
-let assistPressFrames = -1; // -1 = button not currently pressed
-
-function assistInput(pressed) {
-  if (pressed) {
-    if (assistPressFrames === -1) assistPressFrames = 0;
-    assistPressFrames++;
-  } else if (assistPressFrames !== -1) {
-    if (assistPressFrames <= ASSIST_TAP_FRAMES) assistLatch = !assistLatch; // tap → toggle
-    else assistLatch = false;                                              // long hold → off on release
-    assistPressFrames = -1;
-  }
-  return pressed || assistLatch;
-}
 
 function update() {
   const { pad, edge } = readGamepad();
@@ -85,11 +68,11 @@ function update() {
   if (keys['ArrowUp'] || keys['w'] || keys[' '] || touch.thrust) thrustAmt = 1;
   if (pad) thrustAmt = Math.max(thrustAmt, pad.thrustAmt);
 
-  // fly assist: F key, X on gamepad, A on touch — tap to toggle, hold to engage
-  const assistOn = assistInput(!!(keys['f'] || (pad && pad.xBtn) || touch.assist));
-  game.assistActive = assistOn && game.unlocks.assist >= 1;
+  // fly assist is a toggle: F key (in keyboard.js), X on gamepad, A on touch
+  if (pad && edge.xBtn && game.unlocks.assist >= 1) game.assistOn = !game.assistOn;
+  game.assistActive = game.assistOn && game.unlocks.assist >= 1;
 
-  updateLander(rot, thrustAmt, assistOn);
+  updateLander(rot, thrustAmt, game.assistOn);
 }
 
 function loop() {

@@ -34,7 +34,8 @@ export const game = {
   level: startLevel,
   lives: START_LIVES,
   unlocks: freshUnlocks(),
-  assistActive: false, // assist button held this frame (for the HUD)
+  assistOn: false,     // fly assist toggle state
+  assistActive: false, // assist engaged this frame (for the HUD)
   lifeAwarded: false,  // bonus life granted on the current landing (for the HUD)
 };
 

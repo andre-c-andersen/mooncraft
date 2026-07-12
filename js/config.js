@@ -19,6 +19,10 @@ export const FUEL_TANK_STEP = 150; // extra capacity per fuel tank upgrade
 export const START_BOMBS = 3;
 export const START_LIVES = 3;
 
+export const SHIELD_COOLDOWN = 45;    // immunity frames after the shield absorbs a hit
+export const GEAR_VY_STEP = 0.35;     // extra safe descent speed per landing-gear tier
+export const GEAR_ANGLE_STEP = 0.07;  // extra safe landing angle (rad) per tier
+
 export const ASSIST_LEVEL_RATE = 0.012; // rad/frame — constant angular speed toward the assist target
 export const ASSIST_RETRO_GAIN = 0.35;  // retro assist: target tilt per unit of vx
 export const ASSIST_RETRO_MAX = 1.1;    // radians — max retro tilt
@@ -35,6 +39,9 @@ export const LASER_AIM_MIN = 42;          // …shrinking to ≈ 700 ms at high 
 export const LASER_AIM_STEP = 3;          // frames of telegraph lost per level past the first laser
 export const LASER_BEAM_TIME = 12;        // frames ≈ 200 ms — live beam duration
 export const LASER_HIT_RADIUS = 12;
+
+export const ASTEROID_LEVELS = [6, 11, 16, 21, 25]; // wave size grows by one at each
+export const ASTEROID_GRAVITY = 0.4;   // fraction of ship gravity — asteroids fall floatier
 
 export const BOMB_EJECT = 2.2;    // ejection speed along the ship's down-axis
 export const BOMB_RECOIL = 1.6;   // Newton: equal-and-opposite kick on the ship

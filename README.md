@@ -22,6 +22,8 @@ Then open http://localhost:8000 (any static file server works, e.g. `npx serve`)
 
 For debugging, pick your starting level with a query param: `http://localhost:8000/?level=4`.
 
+Cheats, combinable with `level`: `?cheat=max` starts with every unlock bought and 99 lives; `?cheat=god` adds invulnerability (the ship bounces off terrain and shrugs off slugs, lasers, asteroids, and blasts). Cheated runs never touch your saved progress.
+
 ## Project structure
 
 ```
@@ -55,10 +57,12 @@ Landings earn **credits**, spent in the supply depot (shown after every landing)
 
 - **Weapons**: bombs ×3 → triple bomb (whole rack in one volley) → super bombs (bigger blast) → triple super bomb. Destroyed cannons pay 75 credits.
 - **Fly assist** (toggled with the assist button): level assist eases the ship upright; retro assist tilts it against your horizontal travel so thrusting brakes you.
+- **Shields**: three expensive tiers — each absorbs one hit per attempt (slugs, lasers, asteroids, blasts; not bad landings), with a brief flash of immunity after each absorb.
+- **Landing gear**: three tiers — each raises how much descent speed and landing angle a touchdown tolerates; the docking indicator's box widens to match.
 - **Fuel tanks**: three capacity upgrades.
 - **Extra lives**: you start with 3 and earn a free one for landing on even-numbered levels; buy more at prices that climb with each purchase.
 
-From level 2, cannons appear — one more every other level, with no upper limit. Guns fire slugs that get faster as the cannon count grows, every cannon fires more often at higher levels, and every second cannon is a laser that telegraphs its shot with a thin red line before firing; the telegraph gets shorter as you climb. Game over resets credits and unlocks — the run is the progression.
+From level 2, cannons appear — one more every other level, with no upper limit. Guns fire slugs that get faster as the cannon count grows, every cannon fires more often and leads your motion more accurately at higher levels, and every second cannon is a laser that telegraphs its shot with a thin red line before firing; the telegraph gets shorter as you climb. From level 6, asteroid waves fall from the sky — growing to five consecutive rocks per wave by level 25; bomb blasts destroy them. Game over resets credits and unlocks — the run is the progression.
 
 Progress (level, credits, lives, unlocks) is saved in your browser, so a refresh resumes the run at the start of the current level. Only a game over wipes it.
 

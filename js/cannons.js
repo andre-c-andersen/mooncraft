@@ -8,7 +8,7 @@ import {
   LASER_AIM_TIME, LASER_AIM_MIN, LASER_AIM_STEP, LASER_BEAM_TIME, LASER_HIT_RADIUS,
 } from './config.js';
 import { terrainYAt } from './terrain.js';
-import { crash } from './lander.js';
+import { hitShip } from './lander.js';
 
 export function cannonCount() {
   // one cannon at level 2, another every other level — no cap; terrain
@@ -30,6 +30,30 @@ function fireCooldown() {
   // cannons fire faster as levels progress (first cannon arrives at level 2)
   const interval = Math.max(FIRE_INTERVAL_MIN, FIRE_INTERVAL - (game.level - 2) * FIRE_INTERVAL_STEP);
   return interval + Math.random() * 60;
+}
+
+function leadFactor() {
+  // how much cannons lead the ship's motion: none at level ≤4, full intercept by 20
+  return Math.max(0, Math.min(1, (game.level - 4) / 16));
+}
+
+// where to aim: the lander now, shifted by its velocity over the shot's travel time
+function aimPoint(c) {
+  const lander = game.lander;
+  const lead = leadFactor();
+  if (lead <= 0) return { x: lander.x, y: lander.y };
+  let t;
+  if (c.type === 'laser') {
+    // predict where the ship will be when the telegraph ends and the beam fires
+    t = laserAimTime();
+  } else {
+    // slug flight time to the intercept, one refinement iteration
+    const sp = slugSpeed();
+    t = Math.hypot(lander.x - c.x, lander.y - c.y) / sp;
+    t = Math.hypot(lander.x + lander.vx * t - c.x, lander.y + lander.vy * t - c.y) / sp;
+    t = Math.min(t, 300);
+  }
+  return { x: lander.x + lander.vx * t * lead, y: lander.y + lander.vy * t * lead };
 }
 
 export function placeCannons() {
@@ -94,7 +118,7 @@ export function updateCannons() {
         if (game.state === 'flying') {
           const m = laserMuzzle(c), end = laserEndpoint(c);
           if (distToSegment(lander.x, lander.y, m.x, m.y, end.x, end.y) < LASER_HIT_RADIUS) {
-            crash();
+            hitShip();
           }
         }
         if (c.timer <= 0) {
@@ -106,8 +130,9 @@ export function updateCannons() {
     }
 
     if (game.state === 'flying') {
-      // smoothly track the lander
-      let target = Math.atan2(lander.y - c.y, lander.x - c.x);
+      // smoothly track the lander, leading its motion at higher levels
+      const aim = aimPoint(c);
+      let target = Math.atan2(aim.y - c.y, aim.x - c.x);
       let diff = target - c.angle;
       while (diff > Math.PI) diff -= Math.PI * 2;
       while (diff < -Math.PI) diff += Math.PI * 2;
@@ -147,7 +172,7 @@ export function updateCannons() {
     }
     if (game.state === 'flying' && Math.hypot(s.x - lander.x, s.y - lander.y) < SLUG_HIT_RADIUS) {
       slugs.splice(i, 1);
-      crash();
+      hitShip();
     }
   }
 }

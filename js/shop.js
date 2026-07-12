@@ -18,6 +18,16 @@ const ASSIST_TIERS = [
   { label: 'LEVEL ASSIST',  price: 150 },
   { label: 'RETRO ASSIST',  price: 700 },
 ];
+const SHIELD_TIERS = [
+  { label: 'SHIELD +1 HIT', price: 600 },
+  { label: 'SHIELD +1 HIT', price: 1200 },
+  { label: 'SHIELD +1 HIT', price: 2000 },
+];
+const GEAR_TIERS = [
+  { label: 'LANDING GEAR MK2', price: 200 },
+  { label: 'LANDING GEAR MK3', price: 400 },
+  { label: 'LANDING GEAR MK4', price: 700 },
+];
 const FUEL_TIERS = [
   { label: 'FUEL TANK +150', price: 120 },
   { label: 'FUEL TANK +150', price: 240 },
@@ -42,6 +52,8 @@ export function shopRows() {
   return [
     nextTier(WEAPON_TIERS, u.weapon, 'weapon', 'WEAPONS MAXED'),
     nextTier(ASSIST_TIERS, u.assist, 'assist', 'ASSIST MAXED'),
+    nextTier(SHIELD_TIERS, u.shield, 'shield', 'SHIELDS MAXED'),
+    nextTier(GEAR_TIERS, u.gear, 'gear', 'LANDING GEAR MAXED'),
     nextTier(FUEL_TIERS, u.fuel, 'fuel', 'FUEL TANK MAXED'),
     { id: 'life', label: 'EXTRA LIFE', price: lifePrice() },
     { id: 'launch', label: 'LAUNCH ▸', price: null },
@@ -60,6 +72,8 @@ export function shopBuy(row) {
   const u = game.unlocks;
   if (row.id === 'weapon') u.weapon++;
   else if (row.id === 'assist') u.assist++;
+  else if (row.id === 'shield') u.shield++;
+  else if (row.id === 'gear') u.gear++;
   else if (row.id === 'fuel') u.fuel++;
   else if (row.id === 'life') { u.livesBought++; game.lives++; }
   // purchases happen on the shop screen, where the save already points at the
@@ -76,9 +90,9 @@ export function shopActivate() {
 function layout() {
   const { W, H } = game;
   const rows = shopRows();
-  const rowH = 44;
+  const rowH = 40;
   const pw = Math.min(W * 0.86, 640);
-  const ph = 80 + rows.length * rowH + 26;
+  const ph = 64 + rows.length * rowH + 22;
   const top = Math.min(H / 2 + 36, H - ph - 8); // keep on-screen for short viewports
   return { rows, rowH, pw, ph, top, left: W / 2 - pw / 2 };
 }
@@ -96,10 +110,10 @@ export function drawShop() {
   ctx.textAlign = 'center';
   ctx.fillStyle = '#4caf50';
   ctx.font = 'bold 21px Courier New';
-  ctx.fillText('SUPPLY DEPOT — ' + game.credits + ' CR', cx, top + 32);
+  ctx.fillText('SUPPLY DEPOT — ' + game.credits + ' CR', cx, top + 30);
 
   rows.forEach((row, i) => {
-    const y = top + 80 + i * rowH;
+    const y = top + 68 + i * rowH;
     const sel = i === shop.index;
     const affordable = row.price !== null && game.credits >= row.price;
     ctx.font = (sel ? 'bold ' : '') + '18px Courier New';
@@ -131,8 +145,8 @@ export function drawShop() {
 export function shopRowAt(x, y) {
   const { rows, rowH, pw, top, left } = layout();
   for (let i = 0; i < rows.length; i++) {
-    const ry = top + 80 + i * rowH;
-    if (x >= left && x <= left + pw && y >= ry - 28 && y <= ry + 14) return rows[i];
+    const ry = top + 68 + i * rowH;
+    if (x >= left && x <= left + pw && y >= ry - 25 && y <= ry + 13) return rows[i];
   }
   return null;
 }

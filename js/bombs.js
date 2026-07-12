@@ -6,7 +6,7 @@ import {
   GRAVITY, BOMB_EJECT, BOMB_RECOIL, BLAST_RADIUS, SUPER_BLAST_RADIUS, TRIPLE_SPREAD,
 } from './config.js';
 import { terrainYAt } from './terrain.js';
-import { crash } from './lander.js';
+import { hitShip } from './lander.js';
 
 export function dropBomb() {
   const lander = game.lander;
@@ -58,9 +58,13 @@ export function detonate(x, y, isSuper) {
   for (let i = game.slugs.length - 1; i >= 0; i--) {
     if (Math.hypot(game.slugs[i].x - x, game.slugs[i].y - y) < radius) game.slugs.splice(i, 1);
   }
+  for (let i = game.asteroids.length - 1; i >= 0; i--) {
+    const a = game.asteroids[i];
+    if (Math.hypot(a.x - x, a.y - y) < radius + a.r) game.asteroids.splice(i, 1);
+  }
   // your own blast can take you down too
   if (game.state === 'flying' && Math.hypot(game.lander.x - x, game.lander.y - y) < radius * 0.8) {
-    crash();
+    hitShip();
   }
 }
 

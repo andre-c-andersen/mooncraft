@@ -1,10 +1,11 @@
 // Game lifecycle: attempt reset, level advance, retry, game over.
 
-import { game, freshUnlocks, saveProgress } from './state.js';
+import { game, freshUnlocks, saveProgress, applyCheats } from './state.js';
 import { START_LIVES } from './config.js';
 import { genTerrain } from './terrain.js';
 import { createLander } from './lander.js';
 import { placeCannons } from './cannons.js';
+import { resetAsteroids } from './asteroids.js';
 
 export function reset() {
   game.lander = createLander();
@@ -15,6 +16,7 @@ export function reset() {
   placeCannons(); // destroyed cannons come back on retry
   // grace period before the cannons open fire, staggered per cannon
   game.cannons.forEach((c, i) => { c.cooldown = 120 + i * 75; });
+  resetAsteroids();
   game.lifeAwarded = false;
   game.state = 'flying';
 }
@@ -31,6 +33,7 @@ export function advance() {
     game.lives = START_LIVES;
     game.unlocks = freshUnlocks();
     game.assistOn = false;
+    applyCheats(); // a cheated run stays cheated after game over
     genTerrain();
   }
   reset();

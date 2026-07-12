@@ -63,6 +63,7 @@ function helpContent() {
     'them in the supply depot.',
     'Bombed cannons pay 75 cr.',
     'Red laser line = incoming beam.',
+    'Asteroids fall from level 6.',
     '* needs unlock from the depot',
   ];
   return { controls, goal };

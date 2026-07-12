@@ -7,6 +7,7 @@ import { reset, advance } from './game.js';
 import { updateLander, drawLander } from './lander.js';
 import { updateCannons, drawCannons, drawLasers, drawSlugs } from './cannons.js';
 import { updateBombs, drawBombs, dropBomb } from './bombs.js';
+import { updateAsteroids, drawAsteroids } from './asteroids.js';
 import { updateParticles, drawParticles } from './particles.js';
 import { drawHUD } from './hud.js';
 import { drawShop, shopMove, shopActivate } from './shop.js';
@@ -81,6 +82,7 @@ function loop() {
   if (!menu.open) {
     updateCannons();
     updateBombs();
+    updateAsteroids();
     updateParticles();
   }
   ctx.clearRect(0, 0, game.W, game.H);
@@ -90,6 +92,7 @@ function loop() {
   drawLasers();
   drawSlugs();
   drawBombs();
+  drawAsteroids();
   drawParticles();
   drawLander();
   drawHUD();

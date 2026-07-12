@@ -1,8 +1,8 @@
 // Heads-up display: readouts, docking-style landing indicator, hints.
 
-import { game, fuelCapacity } from './state.js';
+import { game, fuelCapacity, safeVY, safeAngle, cheat } from './state.js';
 import { ctx } from './canvas.js';
-import { SAFE_VX, SAFE_VY, SAFE_ANGLE, START_BOMBS } from './config.js';
+import { SAFE_VX, START_BOMBS } from './config.js';
 import { padAt } from './terrain.js';
 import { gamepad } from './input/gamepad.js';
 import { touch } from './input/touch.js';
@@ -20,9 +20,10 @@ function drawLandingIndicator(x, y) {
   let dev = lander.angle % (Math.PI * 2);
   if (dev > Math.PI) dev -= Math.PI * 2;
   if (dev < -Math.PI) dev += Math.PI * 2;
-  const fx = dev / SAFE_ANGLE;
+  // gear-adjusted tolerances: better landing gear widens the box
+  const fx = dev / safeAngle();
   const fdrift = lander.vx / SAFE_VX;
-  const fy = Math.max(lander.vy / SAFE_VY, Math.abs(fdrift));
+  const fy = Math.max(lander.vy / safeVY(), Math.abs(fdrift));
   const angleOk = Math.abs(fx) < 1;
   const speedOk = fy < 1;
   const close = Math.abs(fx) > 0.75 || fy > 0.75;
@@ -141,6 +142,10 @@ export function drawHUD() {
     line(label + '●'.repeat(lander.bombs) + '○'.repeat(START_BOMBS - lander.bombs),
       lander.bombs > 0 ? '#e0e0e0' : '#666');
   }
+  if (unlocks.shield >= 1) {
+    line('SHIELD  ' + '◆'.repeat(lander.shield) + '◇'.repeat(unlocks.shield - lander.shield),
+      lander.shield > 0 ? '#4dd0e1' : '#666');
+  }
   const shownLives = Math.max(0, game.lives);
   line('LIVES   ' + (shownLives > 6 ? '♥ x ' + shownLives : '♥'.repeat(shownLives)),
     game.lives > 1 ? '#ff5252' : '#ff8a80');
@@ -159,16 +164,20 @@ export function drawHUD() {
     ctx.fillStyle = game.assistActive ? '#4caf50' : '#666';
     ctx.fillText((unlocks.assist >= 2 ? 'RETRO' : 'LEVEL') + ' ASSIST ' + (game.assistActive ? '●' : '○'), W - 24, 64);
   }
+  if (cheat.max) {
+    ctx.fillStyle = '#ff4081';
+    ctx.fillText(cheat.god ? 'GOD MODE' : 'CHEATS ON', W - 24, 90);
+  }
 
   ctx.textAlign = 'center';
   const restartHint = gamepad.connected ? 'Press SPACE or A' : (touch.enabled ? 'Tap screen' : 'Press SPACE');
   if (game.state === 'landed') {
     ctx.fillStyle = '#4caf50';
     ctx.font = 'bold 42px Courier New';
-    ctx.fillText('THE EAGLE HAS LANDED', W / 2, H / 2 - 26);
+    ctx.fillText('THE EAGLE HAS LANDED', W / 2, H / 2 - 60);
     if (game.lifeAwarded) {
       ctx.font = 'bold 19px Courier New';
-      ctx.fillText('+1 BONUS LIFE', W / 2, H / 2 + 8);
+      ctx.fillText('+1 BONUS LIFE', W / 2, H / 2 - 28);
     }
   } else if (game.state === 'crashed') {
     const over = game.lives <= 0;

@@ -87,13 +87,13 @@ assert(game.lander.fuel < fuelBefore, 'thrusting burns fuel');
 // --- shop flow (already landed above) ---
 game.state = 'landed';
 runFrames(1); // shop opens
-assert(shop.index === 7, 'LAUNCH is preselected when the shop opens');
+assert(shop.index === 8, 'LAUNCH is preselected when the shop opens');
 game.credits = 5000;
 shop.index = 0;
-pressKey('Enter'); // buy weapon tier 1: BOMBS ×3 (100)
+pressKey('Enter'); // buy weapon tier 1: BOMBS ×1 (100)
 assert(game.unlocks.weapon === 1 && game.credits === 4900, 'bought bombs unlock');
-pressKey('Enter'); // tier 2: TRIPLE BOMB (250)
-assert(game.unlocks.weapon === 2 && game.credits === 4650, 'bought triple bomb');
+pressKey('Enter'); // tier 2: BOMBS ×3 (250)
+assert(game.unlocks.weapon === 2 && game.credits === 4650, 'bought bombs ×3');
 pressKey('ArrowDown'); // assist row
 pressKey('Enter'); // LEVEL ASSIST (100)
 assert(game.unlocks.assist === 1 && game.credits === 4550, 'bought level assist');
@@ -101,32 +101,37 @@ pressKey('Enter'); // RETRO ASSIST (300)
 assert(game.unlocks.assist === 2 && game.credits === 4250, 'bought retro assist');
 pressKey('Enter'); // LANDING ASSIST (600)
 assert(game.unlocks.assist === 3 && game.credits === 3650, 'bought landing assist');
+pressKey('ArrowDown'); // nav row
+pressKey('Enter'); // LANDING COMPUTER (150)
+assert(game.unlocks.nav === 1 && game.credits === 3500, 'bought landing computer');
+pressKey('Enter'); // already owned — a second press must not charge again
+assert(game.unlocks.nav === 1 && game.credits === 3500, 'landing computer is one-shot');
 pressKey('ArrowDown'); // shield row
 pressKey('Enter'); // SHIELD +1 HIT (600)
-assert(game.unlocks.shield === 1 && game.credits === 3050, 'bought shield tier 1');
+assert(game.unlocks.shield === 1 && game.credits === 2900, 'bought shield tier 1');
 pressKey('ArrowDown'); // gear row
 pressKey('Enter'); // LANDING GEAR MK2 (200)
-assert(game.unlocks.gear === 1 && game.credits === 2850, 'bought landing gear');
+assert(game.unlocks.gear === 1 && game.credits === 2700, 'bought landing gear');
 pressKey('ArrowDown'); // thruster row
 pressKey('Enter'); // THRUSTER MK2 (250)
-assert(game.unlocks.thruster === 1 && game.credits === 2600, 'bought thruster mk2');
+assert(game.unlocks.thruster === 1 && game.credits === 2450, 'bought thruster mk2');
 pressKey('Enter'); // THRUSTER MK3 (500)
-assert(game.unlocks.thruster === 2 && game.credits === 2100, 'bought thruster mk3');
+assert(game.unlocks.thruster === 2 && game.credits === 1950, 'bought thruster mk3');
 pressKey('ArrowDown'); // fuel row
 pressKey('Enter'); // FUEL TANK (120)
-assert(game.unlocks.fuel === 1 && game.credits === 1980, 'bought fuel tank');
+assert(game.unlocks.fuel === 1 && game.credits === 1830, 'bought fuel tank');
 pressKey('ArrowDown'); // life row
 const livesBefore = game.lives;
 pressKey('Enter'); // EXTRA LIFE (100)
-assert(game.lives === livesBefore + 1 && game.credits === 1880, 'bought extra life');
+assert(game.lives === livesBefore + 1 && game.credits === 1730, 'bought extra life');
 pressKey('Enter'); // second life should cost more (180)
-assert(game.credits === 1700, 'life price escalates (180 for the second)');
+assert(game.credits === 1550, 'life price escalates (180 for the second)');
 
 const levelBefore = game.level;
 pressKey(' '); // launch
 assert(game.state === 'flying' && game.level === levelBefore + 1, 'launch advances level');
 assert(game.lives === livesBefore + 2, 'no free life on level advance');
-assert(game.lander.bombs === 3, 'bombs granted after unlock');
+assert(game.lander.bombs === 3, 'tier 2 grants a 3-pack of bombs');
 assert(game.lander.fuel === 650, 'fuel capacity upgraded to 650');
 assert(game.lander.shield === 1, 'shield charge granted on launch');
 const { safeVY, thrustPower } = await importGame('state.js');
@@ -191,9 +196,9 @@ assert(game.lander.shield === 1, 'shield recharges each attempt');
   game.level = levelWas;
 }
 
-// triple bomb: one press releases the whole rack
+// bombs always drop one per press — no volley mechanic
 pressKey('b');
-assert(game.lander.bombs === 0 && game.bombs.length === 3, 'triple bomb releases all 3 at once');
+assert(game.lander.bombs === 2 && game.bombs.length === 1, 'one press drops exactly one bomb');
 
 // retro assist: F toggles it on; ship tilts against x-travel
 // (pin the tier to 2 so landing assist doesn't take over)
@@ -242,13 +247,22 @@ game.unlocks.assist = 3;
   game.level = levelWas;
 }
 
-// super bombs
+// pack sizes per weapon tier
+{
+  const { bombsPerAttempt } = await importGame('state.js');
+  const weaponWas = game.unlocks.weapon;
+  const packs = [0, 1, 2, 3, 4].map(w => { game.unlocks.weapon = w; return bombsPerAttempt(); });
+  game.unlocks.weapon = weaponWas;
+  assert(packs.join() === '0,1,3,3,6', 'bomb pack ladder 0→1→3→3→6, got ' + packs.join());
+}
+
+// super bombs — still one per press
 game.unlocks.weapon = 4;
 game.state = 'flying';
 game.lander.bombs = 3;
-game.bombs = []; // clear leftovers from the earlier volley
+game.bombs = []; // clear leftovers from the earlier drop
 pressKey('b');
-assert(game.bombs.length === 3 && game.bombs.every(b => b.super), 'super bombs flagged');
+assert(game.bombs.length === 1 && game.bombs.every(b => b.super), 'super bombs flagged');
 
 // super blasts crater the terrain, but never below the floor
 {
@@ -265,6 +279,11 @@ assert(game.bombs.length === 3 && game.bombs.every(b => b.super), 'super bombs f
   const padY = game.pads[0].y;
   detonate((game.pads[0].x1 + game.pads[0].x2) / 2, padY, true);
   assert(game.pads[0].y === padY, 'pads are never deformed');
+
+  // craters heal on retry: dying restores the level's original moonscape
+  game.state = 'crashed';
+  pressKey(' ');
+  assert(terrainYAt(cx) === before, 'craters reset when the attempt restarts');
 }
 
 // perf overlay toggles with P and draws without breaking the loop

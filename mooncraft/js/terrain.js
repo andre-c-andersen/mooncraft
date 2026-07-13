@@ -19,6 +19,9 @@ const PAD_TYPES = [
   { w: 1.0, mult: 3, color: '#ff5252', maxLevel: Infinity }, // hard: barely wider than the ship
 ];
 
+// the level's terrain as generated, before any craters
+let pristine = [];
+
 export function genTerrain() {
   const { W, H } = game;
   game.terrain = [];
@@ -63,6 +66,12 @@ export function genTerrain() {
   }
   // make the last point reach the right edge
   game.terrain[game.terrain.length - 1].x = W;
+  pristine = game.terrain.map(pt => ({ x: pt.x, y: pt.y }));
+}
+
+// craters heal between attempts: dying restores the original moonscape
+export function resetTerrain() {
+  game.terrain = pristine.map(pt => ({ x: pt.x, y: pt.y }));
 }
 
 // carve a crater: push nearby terrain down with a smooth falloff, never

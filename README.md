@@ -4,7 +4,7 @@ Small browser games — vanilla HTML/CSS/JS, no dependencies, no build step. The
 
 Live at **https://games.andersen.im** via GitHub Pages.
 
-## 🌙 Moon Lander — v1.13
+## 🌙 Moon Lander — v1.16
 
 A classic lunar lander arcade game — with sci-fi defense cannons, laser turrets, droppable bombs, asteroids, an upgrade economy, touch controls, and full Xbox controller support.
 
@@ -72,12 +72,13 @@ mooncraft/
 
 ## How to play
 
-Land gently on a pad. A safe landing needs low speed and a nearly upright ship — watch the docking indicator: keep the ball inside the brackets and land when it reads LAND OK. Pads come in three difficulties: wide green ×1, medium amber ×2, and narrow red ×3 — the multiplier scales your landing credits, leftover fuel pays a bonus, and landing quickly pays a speed bonus (up to 150 credits, shrinking every second). The easy pad disappears from level 10 and the medium from level 20 — after that, only the narrow ×3 pad remains. If you fly off the top of the screen, an amber marker on the top border tracks your position and height.
+Land gently on a pad. A safe landing needs low speed and a nearly upright ship — the landing computer upgrade adds a docking indicator: keep the ball inside the brackets and land when it reads LAND OK. Pads come in three difficulties: wide green ×1, medium amber ×2, and narrow red ×3 — the multiplier scales your landing credits, leftover fuel pays a bonus, and landing quickly pays a speed bonus (up to 150 credits, shrinking every second). The easy pad disappears from level 10 and the medium from level 20 — after that, only the narrow ×3 pad remains. If you fly off the top of the screen, an amber marker on the top border tracks your position and height.
 
 Landings earn **credits**, spent in the supply depot (shown after every landing):
 
-- **Weapons**: bombs ×3 → triple bomb (whole rack in one volley) → super bombs (bigger blast that craters the terrain) → triple super bomb. Destroyed cannons pay 75 credits.
+- **Weapons**: bombs ×1 → bombs ×3 → super bombs ×3 (bigger blast that craters the terrain — craters heal if you die) → super bombs ×6. Always dropped one per press; upgrades grow the rack. Destroyed cannons pay 75 credits.
 - **Fly assist** (toggled with the assist button): level assist eases the ship upright; retro assist tilts it against your horizontal travel so thrusting brakes you; landing assist aims the rocket so thrusting steers you onto the nearest pad — you still fly the throttle.
+- **Landing computer**: adds the docking-style landing indicator to the HUD — ball-in-brackets safety readout, pad-below lamp, and LAND OK / TOO FAST / BAD ANGLE status.
 - **Shields**: three expensive tiers — each charge blocks exactly one projectile (a slug, a laser beam, an asteroid, or a blast; not bad landings). No immunity between hits: sustained fire will chew through the charges. A consumed charge recharges after ~4 quiet seconds; taking a hit restarts the timer.
 - **Landing gear**: three tiers — each raises how much descent speed and landing angle a touchdown tolerates; the docking indicator's box widens to match.
 - **Thrusters**: two tiers of stronger engines (+15% / +31% thrust) — snappier burns and easier saves, with a visibly longer exhaust flame.

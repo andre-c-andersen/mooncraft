@@ -1,8 +1,8 @@
 // Heads-up display: readouts, docking-style landing indicator, hints.
 
-import { game, fuelCapacity, safeVY, safeAngle, cheat } from './state.js';
+import { game, fuelCapacity, bombsPerAttempt, safeVY, safeAngle, cheat } from './state.js';
 import { ctx } from './canvas.js';
-import { SAFE_VX, START_BOMBS, VERSION } from './config.js';
+import { SAFE_VX, VERSION } from './config.js';
 import { padAt } from './terrain.js';
 import { gamepad } from './input/gamepad.js';
 import { touch } from './input/touch.js';
@@ -139,7 +139,7 @@ export function drawHUD() {
   y += 27;
   if (unlocks.weapon >= 1) {
     const label = unlocks.weapon >= 3 ? 'S.BOMBS ' : 'BOMBS   ';
-    line(label + '●'.repeat(lander.bombs) + '○'.repeat(START_BOMBS - lander.bombs),
+    line(label + '●'.repeat(lander.bombs) + '○'.repeat(Math.max(0, bombsPerAttempt() - lander.bombs)),
       lander.bombs > 0 ? '#e0e0e0' : '#666');
   }
   if (unlocks.shield >= 1) {
@@ -150,8 +150,8 @@ export function drawHUD() {
   line('LIVES   ' + (shownLives > 6 ? '♥ x ' + shownLives : '♥'.repeat(shownLives)),
     game.lives > 1 ? '#ff5252' : '#ff8a80');
 
-  // docking-style landing safety indicator
-  drawLandingIndicator(24, y + 10);
+  // docking-style landing safety indicator — a shop upgrade
+  if (unlocks.nav >= 1) drawLandingIndicator(24, y + 10);
 
   // right column (shifted left on touch devices to clear the gear button)
   const rightX = touch.enabled ? W - 92 : W - 24;

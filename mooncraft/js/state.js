@@ -2,7 +2,7 @@
 // it imports nothing but config.
 
 import {
-  START_LIVES, START_FUEL, FUEL_TANK_STEP, START_BOMBS, VIEW_W, VIEW_H,
+  START_LIVES, START_FUEL, FUEL_TANK_STEP, BOMB_PACKS, VIEW_W, VIEW_H,
   SAFE_VY, SAFE_ANGLE, GEAR_VY_STEP, GEAR_ANGLE_STEP, THRUST, THRUST_STEP,
 } from './config.js';
 
@@ -20,8 +20,9 @@ export const cheat = {
 
 export function freshUnlocks() {
   return {
-    weapon: 0,      // 0 none, 1 bombs, 2 triple bomb, 3 super bombs, 4 triple super bomb
+    weapon: 0,      // 0 none, 1 bombs ×1, 2 bombs ×3, 3 super bombs ×3, 4 super bombs ×6
     assist: 0,      // 0 none, 1 level assist, 2 retro assist
+    nav: 0,         // 1 = landing computer (the docking-style landing indicator)
     shield: 0,      // hits absorbed per attempt (0..3)
     gear: 0,        // landing gear tier: raises safe descent speed and angle (0..3)
     thruster: 0,    // stronger engines (0..2)
@@ -72,7 +73,7 @@ export const game = {
 
 export function applyCheats() {
   if (!cheat.max) return;
-  game.unlocks = { weapon: 4, assist: 3, shield: 3, gear: 3, thruster: 2, fuel: 3, livesBought: 0 };
+  game.unlocks = { weapon: 4, assist: 3, nav: 1, shield: 3, gear: 3, thruster: 2, fuel: 3, livesBought: 0 };
   game.lives = 99;
   game.credits = Math.max(game.credits, 9999);
 }
@@ -102,15 +103,11 @@ export function fuelCapacity() {
 }
 
 export function bombsPerAttempt() {
-  return game.unlocks.weapon >= 1 ? START_BOMBS : 0;
+  return BOMB_PACKS[game.unlocks.weapon];
 }
 
 export function bombsAreSuper() {
   return game.unlocks.weapon >= 3;
-}
-
-export function bombsAreTriple() {
-  return game.unlocks.weapon === 2 || game.unlocks.weapon === 4;
 }
 
 // landing tolerances grow with the landing-gear tier

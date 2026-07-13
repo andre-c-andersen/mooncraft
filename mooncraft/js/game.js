@@ -2,7 +2,7 @@
 
 import { game, freshUnlocks, saveProgress, applyCheats } from './state.js';
 import { START_LIVES } from './config.js';
-import { genTerrain } from './terrain.js';
+import { genTerrain, resetTerrain } from './terrain.js';
 import { createLander } from './lander.js';
 import { placeCannons } from './cannons.js';
 import { resetAsteroids } from './asteroids.js';
@@ -13,6 +13,7 @@ export function reset() {
   game.slugs = [];
   game.bombs = [];
   game.booms = [];
+  resetTerrain(); // craters heal on retry, like the cannons below
   placeCannons(); // destroyed cannons come back on retry
   // grace period before the cannons open fire, randomly spread — a linear
   // per-index stagger made high cannon counts fire in a one-by-one chain

@@ -1,6 +1,6 @@
 // Gameplay tuning constants.
 
-export const VERSION = '1.13';
+export const VERSION = '1.16';
 
 // fixed logical play area — scaled to fit the screen, letterboxed, same view everywhere.
 // 2:1 splits the difference between phone screens (~19.5:9) and laptop browser
@@ -22,7 +22,7 @@ export const SPEED_BONUS_DECAY = 10;  // …shrinking by this much per second of
 
 export const START_FUEL = 500;
 export const FUEL_TANK_STEP = 150; // extra capacity per fuel tank upgrade
-export const START_BOMBS = 3;
+export const BOMB_PACKS = [0, 1, 3, 3, 6]; // bombs per attempt, by weapon tier
 export const START_LIVES = 3;
 
 export const SHIELD_COOLDOWN = 45;    // frames the shield flash lasts after an absorb (visual only)
@@ -64,4 +64,3 @@ export const BOMB_EJECT = 2.2;    // ejection speed along the ship's down-axis
 export const BOMB_RECOIL = 1.6;   // Newton: equal-and-opposite kick on the ship
 export const BLAST_RADIUS = 55;
 export const SUPER_BLAST_RADIUS = 130;
-export const TRIPLE_SPREAD = 0.28; // radians between bombs in a triple volley

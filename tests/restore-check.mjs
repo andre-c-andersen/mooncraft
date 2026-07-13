@@ -6,7 +6,7 @@ const expected = {
   credits: 700,
   level: 21,
   lives: 4,
-  unlocks: { weapon: 2, assist: 2, shield: 1, gear: 1, thruster: 1, fuel: 1, livesBought: 2 },
+  unlocks: { weapon: 2, assist: 2, nav: 1, shield: 1, gear: 1, thruster: 1, fuel: 1, livesBought: 2 },
   assistOn: false,
 };
 
@@ -21,6 +21,7 @@ assert(game.credits === expected.credits, 'credits restored: ' + game.credits);
 assert(game.lives === expected.lives, 'lives restored: ' + game.lives);
 assert(game.unlocks.weapon === expected.unlocks.weapon
   && game.unlocks.assist === expected.unlocks.assist
+  && game.unlocks.nav === expected.unlocks.nav
   && game.unlocks.shield === expected.unlocks.shield
   && game.unlocks.gear === expected.unlocks.gear
   && game.unlocks.thruster === expected.unlocks.thruster

@@ -1,9 +1,9 @@
 // Droppable bombs, detonations, and expanding blast rings.
 
-import { game, bombsAreSuper, bombsAreTriple } from './state.js';
+import { game, bombsAreSuper } from './state.js';
 import { ctx } from './canvas.js';
 import {
-  GRAVITY, BOMB_EJECT, BOMB_RECOIL, BLAST_RADIUS, SUPER_BLAST_RADIUS, TRIPLE_SPREAD,
+  GRAVITY, BOMB_EJECT, BOMB_RECOIL, BLAST_RADIUS, SUPER_BLAST_RADIUS,
 } from './config.js';
 import { terrainYAt, deformTerrain } from './terrain.js';
 import { hitShip } from './lander.js';
@@ -11,27 +11,19 @@ import { hitShip } from './lander.js';
 export function dropBomb() {
   const lander = game.lander;
   if (game.state !== 'flying' || game.unlocks.weapon < 1 || lander.bombs <= 0) return;
-  const triple = bombsAreTriple();
-  const count = triple ? lander.bombs : 1;
-  const spread = [0, -TRIPLE_SPREAD, TRIPLE_SPREAD];
-  for (let i = 0; i < count; i++) {
-    // ship's down-axis (opposite the thrust vector), fanned out for a volley
-    const a = lander.angle + (triple ? spread[i % 3] : 0);
-    const dx = -Math.sin(a), dy = Math.cos(a);
-    game.bombs.push({
-      x: lander.x + dx * 16,
-      y: lander.y + dy * 16,
-      vx: lander.vx + dx * BOMB_EJECT,
-      vy: lander.vy + dy * BOMB_EJECT,
-      super: bombsAreSuper(),
-    });
-  }
-  lander.bombs -= count;
-  // Newton: equal and opposite — the ship gets a kick, softened per bomb in a volley
-  const kick = BOMB_RECOIL * (triple ? 0.6 : 1) * count;
-  const dx0 = -Math.sin(lander.angle), dy0 = Math.cos(lander.angle);
-  lander.vx -= dx0 * kick;
-  lander.vy -= dy0 * kick;
+  // ship's down-axis (opposite the thrust vector)
+  const dx = -Math.sin(lander.angle), dy = Math.cos(lander.angle);
+  game.bombs.push({
+    x: lander.x + dx * 16,
+    y: lander.y + dy * 16,
+    vx: lander.vx + dx * BOMB_EJECT,
+    vy: lander.vy + dy * BOMB_EJECT,
+    super: bombsAreSuper(),
+  });
+  lander.bombs--;
+  // Newton: equal and opposite — the ship gets a kick
+  lander.vx -= dx * BOMB_RECOIL;
+  lander.vy -= dy * BOMB_RECOIL;
 }
 
 export function detonate(x, y, isSuper) {

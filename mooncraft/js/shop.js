@@ -9,10 +9,10 @@ import { gamepad } from './input/gamepad.js';
 const touchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
 
 const WEAPON_TIERS = [
-  { label: 'BOMBS ×3',          price: 100 },
-  { label: 'TRIPLE BOMB',       price: 250 },
-  { label: 'SUPER BOMBS',       price: 500 },
-  { label: 'TRIPLE SUPER BOMB', price: 900 },
+  { label: 'BOMBS ×1',       price: 100 },
+  { label: 'BOMBS ×3',       price: 250 },
+  { label: 'SUPER BOMBS ×3', price: 500 },
+  { label: 'SUPER BOMBS ×6', price: 900 },
 ];
 // deliberately cheap: assists mostly help players who are still learning,
 // so they should be affordable early rather than late-game luxuries
@@ -20,6 +20,10 @@ const ASSIST_TIERS = [
   { label: 'LEVEL ASSIST',   price: 100 },
   { label: 'RETRO ASSIST',   price: 300 },
   { label: 'LANDING ASSIST', price: 600 },
+];
+// same logic as the assists: the docking indicator is a learning aid
+const NAV_TIERS = [
+  { label: 'LANDING COMPUTER', price: 150 },
 ];
 const SHIELD_TIERS = [
   { label: 'SHIELD +1 HIT', price: 600 },
@@ -59,6 +63,7 @@ export function shopRows() {
   return [
     nextTier(WEAPON_TIERS, u.weapon, 'weapon', 'WEAPONS MAXED'),
     nextTier(ASSIST_TIERS, u.assist, 'assist', 'ASSIST MAXED'),
+    nextTier(NAV_TIERS, u.nav, 'nav', 'LANDING COMPUTER'),
     nextTier(SHIELD_TIERS, u.shield, 'shield', 'SHIELDS MAXED'),
     nextTier(GEAR_TIERS, u.gear, 'gear', 'LANDING GEAR MAXED'),
     nextTier(THRUSTER_TIERS, u.thruster, 'thruster', 'THRUSTERS MAXED'),
@@ -86,6 +91,7 @@ export function shopBuy(row) {
   const u = game.unlocks;
   if (row.id === 'weapon') u.weapon++;
   else if (row.id === 'assist') u.assist++;
+  else if (row.id === 'nav') u.nav++;
   else if (row.id === 'shield') u.shield++;
   else if (row.id === 'gear') u.gear++;
   else if (row.id === 'thruster') u.thruster++;

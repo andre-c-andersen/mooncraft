@@ -1,6 +1,6 @@
 // Gameplay tuning constants.
 
-export const VERSION = '1.23';
+export const VERSION = '1.24';
 
 // fixed logical play area — scaled to fit the screen, letterboxed, same view everywhere.
 // 2:1 splits the difference between phone screens (~19.5:9) and laptop browser
@@ -25,6 +25,7 @@ export const LOOP_BONUS = 50;         // stunt credits for a full 360° mid-air 
 // OFF in a bottom deadzone and responds steeply just above it
 export const TOUCH_THRUST_DEADZONE = 0.15; // bottom fraction of the travel that stays OFF
 export const TOUCH_THRUST_CURVE = 0.5;     // response exponent — <1 = most sensitive near the bottom
+export const TOUCH_ROT_DEADZONE = 0.35;    // center fraction of the rotation pad (per side) that stays neutral
 
 // decoy pads: from this level three identical hard pads spawn, all gray —
 // only one is real, revealed after a scan cooldown, so a suicide burn can't

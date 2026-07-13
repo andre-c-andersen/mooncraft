@@ -11,11 +11,12 @@ import { dropBomb } from '../bombs.js';
 import { advance } from '../game.js';
 import { shop, shopRows, shopRowAt, shopBuy } from '../shop.js';
 import { entry, entryTapAt } from '../hiscores.js';
-import { TOUCH_THRUST_DEADZONE, TOUCH_THRUST_CURVE } from '../config.js';
+import { TOUCH_THRUST_DEADZONE, TOUCH_THRUST_CURVE, TOUCH_ROT_DEADZONE } from '../config.js';
 
 export const touch = {
   enabled: 'ontouchstart' in window || navigator.maxTouchPoints > 0,
-  rot: 0,        // -1..1 from the left pad
+  rot: 0,        // -1..1 applied rotation (deadzoned)
+  rotRaw: 0,     // -1..1 raw thumb position, for drawing the knob
   thrust: 0,     //  0..1 applied throttle (deadzoned + curved)
   thrustRaw: 0,  //  0..1 raw thumb travel, for drawing the knob
 };
@@ -33,7 +34,8 @@ export function sliders() {
   };
 }
 
-function actionButtons() {
+// exported so tests can drive the exact geometry
+export function actionButtons() {
   const { W, H } = game;
   const r = Math.min(W, H) * 0.07;
   return {
@@ -68,13 +70,18 @@ function inThrustSlider(s, x, y) {
 
 function recompute() {
   touch.rot = 0;
+  touch.rotRaw = 0;
   touch.thrust = 0;
   touch.thrustRaw = 0;
   const s = sliders();
   for (const g of tracked.values()) {
     if (g.kind === 'rot') {
-      // linear across the whole pad: left of center turns left, right turns right
-      touch.rot = Math.max(-1, Math.min(1, (g.x - s.rot.cx) / s.rot.half));
+      // a wide neutral zone in the middle rests the thumb; past it the
+      // response is linear out to full rate at the pad's edge
+      const u = Math.max(-1, Math.min(1, (g.x - s.rot.cx) / s.rot.half));
+      touch.rotRaw = u;
+      touch.rot = Math.abs(u) <= TOUCH_ROT_DEADZONE ? 0
+        : Math.sign(u) * (Math.abs(u) - TOUCH_ROT_DEADZONE) / (1 - TOUCH_ROT_DEADZONE);
     } else if (g.kind === 'thrust') {
       // resting in the bottom deadzone is OFF; above it the response is
       // curved so the low-throttle hover band gets the most finger travel
@@ -138,7 +145,7 @@ canvas.addEventListener('touchmove', e => {
 }, { passive: false });
 
 for (const type of ['touchend', 'touchcancel']) {
-  canvas.addEventListener(type, e => {
+  canvas.addEventListener(type, (/** @type {TouchEvent} */ e) => {
     e.preventDefault();
     for (const t of e.changedTouches) tracked.delete(t.identifier);
     recompute();
@@ -179,9 +186,46 @@ export function drawTouchControls() {
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
 
-  // left: rotation pad — track, center notch, end arrows, knob
+  // action buttons — invisible buttons don't exist to a player
+  const btns = actionButtons();
+  if (buttonUnlocked('assist')) {
+    const b = btns.assist;
+    ctx.globalAlpha = 0.55;
+    ctx.beginPath();
+    ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
+    ctx.fillStyle = '#37474f';
+    ctx.fill();
+    ctx.strokeStyle = game.assistOn ? '#4caf50' : '#90a4ae';
+    ctx.lineWidth = 3;
+    ctx.stroke();
+    ctx.fillStyle = game.assistOn ? '#4caf50' : '#e0e0e0';
+    ctx.font = 'bold 16px Courier New';
+    ctx.fillText('ASSIST', b.x, b.y - 8);
+    ctx.font = '13px Courier New';
+    ctx.fillText(game.assistOn ? 'ON' : 'OFF', b.x, b.y + 14);
+  }
+  if (buttonUnlocked('bomb')) {
+    const b = btns.bomb;
+    const armed = game.lander && game.lander.bombs > 0;
+    ctx.globalAlpha = armed ? 0.55 : 0.3;
+    ctx.beginPath();
+    ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
+    ctx.fillStyle = '#37474f';
+    ctx.fill();
+    ctx.strokeStyle = armed ? '#ffa726' : '#666';
+    ctx.lineWidth = 3;
+    ctx.stroke();
+    ctx.font = Math.round(b.r * 0.7) + 'px Courier New';
+    ctx.fillText('💣', b.x, b.y - 6);
+    ctx.fillStyle = armed ? '#e0e0e0' : '#666';
+    ctx.font = 'bold 14px Courier New';
+    ctx.fillText('×' + (game.lander ? game.lander.bombs : 0), b.x, b.y + 26);
+  }
+
+  // left: rotation pad — track with a wide neutral center band, end arrows, knob
   {
     const { cx, cy, half } = s.rot;
+    const dead = half * TOUCH_ROT_DEADZONE;
     ctx.globalAlpha = rotActive ? 0.55 : 0.3;
     ctx.strokeStyle = '#90a4ae';
     ctx.lineWidth = 3;
@@ -189,9 +233,20 @@ export function drawTouchControls() {
     ctx.moveTo(cx - half, cy);
     ctx.lineTo(cx + half, cy);
     ctx.stroke();
+    // neutral band: resting the thumb here doesn't turn
+    ctx.strokeStyle = '#546e7a';
+    ctx.lineWidth = 8;
     ctx.beginPath();
-    ctx.moveTo(cx, cy - 12);
-    ctx.lineTo(cx, cy + 12);
+    ctx.moveTo(cx - dead, cy);
+    ctx.lineTo(cx + dead, cy);
+    ctx.stroke();
+    ctx.strokeStyle = '#90a4ae';
+    ctx.lineWidth = 3;
+    ctx.beginPath(); // band boundary ticks
+    ctx.moveTo(cx - dead, cy - 12);
+    ctx.lineTo(cx - dead, cy + 12);
+    ctx.moveTo(cx + dead, cy - 12);
+    ctx.lineTo(cx + dead, cy + 12);
     ctx.stroke();
     ctx.fillStyle = '#90a4ae';
     ctx.font = '20px Courier New';
@@ -199,7 +254,7 @@ export function drawTouchControls() {
     ctx.fillText('▶', cx + half + 24, cy + 1);
     ctx.globalAlpha = rotActive ? 0.9 : 0.45;
     ctx.beginPath();
-    ctx.arc(cx + touch.rot * half, cy, 20, 0, Math.PI * 2);
+    ctx.arc(cx + touch.rotRaw * half, cy, 22, 0, Math.PI * 2);
     ctx.fillStyle = touch.rot !== 0 ? '#fff176' : '#78909c';
     ctx.fill();
   }

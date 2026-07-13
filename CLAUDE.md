@@ -35,7 +35,12 @@ never write saved progress.
 node tests/smoke.mjs
 node tests/restore-check.mjs
 node tests/cheat-check.mjs
+npx -y -p typescript@5 tsc --noEmit   # typecheck (JSDoc + checkJs, no build)
 ```
+
+Entity shapes live in `mooncraft/js/types.d.ts` (ambient interfaces,
+usable in JSDoc without imports). When adding a field to a shared object
+(lander, cannon, pad, …), add it there too or the typecheck fails.
 
 Headless, dependency-free: they stub the DOM, boot the real game, and drive
 the loop frame by frame (see `tests/harness.mjs`). The harness seeds

@@ -415,15 +415,19 @@ assert(game.bombs.length === 1 && game.bombs.every(b => b.super), 'super bombs f
   pressKey(' '); // back on the pre-decoy level for the rest of the run
 }
 
-// touch flight controls: linear rotation halves, curved thrust with a deadzone
+// touch flight controls: linear rotation halves, deadzones, curved thrust
 {
   const { touch, sliders } = await importGame('input/touch.js');
-  const { TOUCH_THRUST_DEADZONE, TOUCH_THRUST_CURVE } = await importGame('config.js');
+  const { TOUCH_THRUST_DEADZONE, TOUCH_THRUST_CURVE, TOUCH_ROT_DEADZONE } = await importGame('config.js');
   const s = sliders();
   h.touchDown(s.rot.cx - s.rot.half, s.rot.cy, 11);
   assert(touch.rot === -1, 'far left of the pad is full left rotation');
+  h.touchMove(s.rot.cx + s.rot.half * TOUCH_ROT_DEADZONE * 0.9, s.rot.cy, 11);
+  assert(touch.rot === 0, 'the wide center band stays neutral');
   h.touchMove(s.rot.cx + s.rot.half / 2, s.rot.cy, 11);
-  assert(Math.abs(touch.rot - 0.5) < 1e-9, 'sliding right transitions linearly to right rotation');
+  const expectedRot = (0.5 - TOUCH_ROT_DEADZONE) / (1 - TOUCH_ROT_DEADZONE);
+  assert(Math.abs(touch.rot - expectedRot) < 1e-9,
+    'past the band the response ramps linearly (' + touch.rot.toFixed(3) + ' at half pad)');
   h.touchUp(s.rot.cx, s.rot.cy, 11);
   assert(touch.rot === 0, 'release recenters rotation');
 
@@ -438,6 +442,20 @@ assert(game.bombs.length === 1 && game.bombs.every(b => b.super), 'super bombs f
   assert(touch.thrust === 1, 'top of the slider is full thrust');
   h.touchUp(tx, bottom - height, 12);
   assert(touch.thrust === 0, 'release cuts thrust');
+
+  // the assist and bomb buttons respond to taps
+  const { actionButtons } = await importGame('input/touch.js');
+  const ab = actionButtons();
+  const assistWas = game.assistOn;
+  h.touchAt(ab.assist.x, ab.assist.y);
+  assert(game.assistOn === !assistWas, 'tapping the assist button toggles assist');
+  h.touchAt(ab.assist.x, ab.assist.y); // toggle back
+  assert(game.assistOn === assistWas, 'second tap toggles assist back');
+  const bombs0 = game.lander.bombs, inAir0 = game.bombs.length;
+  h.touchAt(ab.bomb.x, ab.bomb.y);
+  assert(game.lander.bombs === bombs0 - 1 && game.bombs.length === inAir0 + 1,
+    'tapping the bomb button drops one bomb');
+  game.bombs = []; // don't let the stray bomb detonate into later assertions
 }
 
 // loop-de-loop: a full 360° of net rotation pays a stunt bonus

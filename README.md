@@ -4,7 +4,7 @@ Small browser games — vanilla HTML/CSS/JS, no dependencies, no build step. The
 
 Live at **https://games.andersen.im** via GitHub Pages.
 
-## 🌙 Moon Lander — v1.23
+## 🌙 Moon Lander — v1.24
 
 A classic lunar lander arcade game — with sci-fi defense cannons, laser turrets, droppable bombs, asteroids, an upgrade economy, touch controls, and full Xbox controller support.
 
@@ -34,9 +34,10 @@ Headless smoke tests boot the real game against a stubbed DOM and drive it frame
 node tests/smoke.mjs
 node tests/restore-check.mjs
 node tests/cheat-check.mjs
+npx -y -p typescript@5 tsc --noEmit   # typecheck (JSDoc + checkJs — no build step)
 ```
 
-They also run automatically on every push via GitHub Actions.
+The runs are deterministic (the harness seeds `Math.random`; set `TEST_SEED=n` to explore). Type-checking is JSDoc-based against `mooncraft/js/types.d.ts` — the shipped `.js` files are exactly what you edit. Everything also runs automatically on every push via GitHub Actions.
 
 ## Project structure
 

@@ -4,7 +4,7 @@
 
 import { VIEW_W, VIEW_H } from './config.js';
 
-export const canvas = document.getElementById('game');
+export const canvas = /** @type {HTMLCanvasElement} */ (document.getElementById('game'));
 export const ctx = canvas.getContext('2d');
 
 export function resize() {

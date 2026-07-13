@@ -45,6 +45,7 @@ function loadProgress() {
 
 const saved = loadProgress();
 
+/** @type {Game} */
 export const game = {
   W: VIEW_W,  // logical size — fixed; the canvas scales it to the screen
   H: VIEW_H,

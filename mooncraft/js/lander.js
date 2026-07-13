@@ -20,6 +20,7 @@ function terrainCrestBetween(x1, x2) {
   return Math.min(crest, terrainYAt(hi));
 }
 
+/** @returns {Lander} */
 export function createLander() {
   return {
     x: game.W * (0.2 + Math.random() * 0.6),

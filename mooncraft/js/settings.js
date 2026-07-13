@@ -1,6 +1,9 @@
 // Controller settings, persisted to localStorage.
 
-export const DEFAULT_SETTINGS = { rotSens: 1.0, deadzone: 0.25, trigThresh: 0.10 };
+export const DEFAULT_SETTINGS = {
+  rotSens: 1.0, deadzone: 0.25, trigThresh: 0.10,
+  musicVol: 0.6, sfxVol: 0.8,
+};
 
 function load() {
   try {

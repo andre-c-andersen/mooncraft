@@ -8,9 +8,10 @@ import {
   ASSIST_LEVEL_RATE, ASSIST_RETRO_GAIN, ASSIST_RETRO_MAX,
   LAND_ASSIST_RATE, LAND_ASSIST_KP, LAND_ASSIST_DRIFT, LAND_ASSIST_DRIFT_MAX,
   LAND_ASSIST_DESCENT, LAND_ASSIST_DESCENT_MIN, LAND_ASSIST_DESCENT_MAX,
-  SHIELD_COOLDOWN, SHIELD_RECHARGE_FRAMES,
+  SHIELD_COOLDOWN, SHIELD_RECHARGE_FRAMES, RESERVE_POWER, RESERVE_BURN,
 } from './config.js';
 import { terrainYAt, padAt, padRevealDelay } from './terrain.js';
+import { playSfx } from './audio.js';
 
 // highest terrain (smallest y) along the horizontal span between two x's
 function terrainCrestBetween(x1, x2) {
@@ -29,6 +30,7 @@ export function createLander() {
     vy: 0.3,
     angle: 0,
     fuel: fuelCapacity(),
+    reserve: RESERVE_BURN, // dry-tank vapor budget (full-throttle frames)
     thrusting: false,
     thrustAmt: 0,
     bombs: bombsPerAttempt(),
@@ -59,6 +61,7 @@ export function crash() {
   game.state = 'crashed';
   game.lives--;
   explode();
+  playSfx('shipCrash');
   saveProgress();
 }
 
@@ -89,6 +92,7 @@ export function hitShip() {
     lander.shieldCooldown = SHIELD_COOLDOWN; // visual flash only
     lander.shieldRegen = SHIELD_RECHARGE_FRAMES; // getting hit restarts the recharge
     shieldBurst();
+    playSfx('shieldHit');
     return;
   }
   crash();
@@ -182,21 +186,26 @@ export function updateLander(rot, thrustAmt, assistHeld) {
 
   lander.thrusting = false;
   lander.thrustAmt = 0;
-  if (thrustAmt > 0 && lander.fuel > 0) {
+  // a dry tank still holds vapor: RESERVE_POWER thrust from a small
+  // per-attempt budget — enough Δv to flare a landing, not to fly on
+  const dry = lander.fuel <= 0;
+  if (thrustAmt > 0 && (!dry || lander.reserve > 0)) {
+    const eff = dry ? thrustAmt * RESERVE_POWER : thrustAmt;
     lander.thrusting = true;
-    lander.thrustAmt = thrustAmt;
-    lander.vx += Math.sin(lander.angle) * thrustPower() * thrustAmt;
-    lander.vy -= Math.cos(lander.angle) * thrustPower() * thrustAmt;
-    lander.fuel -= thrustAmt; // fuel burn scales with throttle
+    lander.thrustAmt = eff;
+    lander.vx += Math.sin(lander.angle) * thrustPower() * eff;
+    lander.vy -= Math.cos(lander.angle) * thrustPower() * eff;
+    if (dry) lander.reserve -= thrustAmt; // both burns scale with throttle
+    else lander.fuel -= thrustAmt;
     // exhaust particles
-    const n = Math.max(1, Math.round(3 * thrustAmt));
+    const n = Math.max(1, Math.round(3 * eff));
     for (let i = 0; i < n; i++) {
       const spread = (Math.random() - 0.5) * 0.5;
       game.particles.push({
         x: lander.x - Math.sin(lander.angle) * 14,
         y: lander.y + Math.cos(lander.angle) * 14,
-        vx: lander.vx - Math.sin(lander.angle + spread) * (1 + 2 * thrustAmt),
-        vy: lander.vy + Math.cos(lander.angle + spread) * (1 + 2 * thrustAmt),
+        vx: lander.vx - Math.sin(lander.angle + spread) * (1 + 2 * eff),
+        vy: lander.vy + Math.cos(lander.angle + spread) * (1 + 2 * eff),
         life: 20 + Math.random() * 15,
         color: Math.random() < 0.5 ? '#ffa726' : '#fff176',
       });

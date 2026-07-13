@@ -2,7 +2,7 @@
 
 import { game, fuelCapacity, bombsPerAttempt, safeVY, safeAngle, cheat } from './state.js';
 import { ctx } from './canvas.js';
-import { SAFE_VX, VERSION } from './config.js';
+import { SAFE_VX, VERSION, RESERVE_BURN } from './config.js';
 import { entry } from './hiscores.js';
 import { padAt, padsRevealed, padRevealDelay } from './terrain.js';
 import { gamepad } from './input/gamepad.js';
@@ -135,14 +135,15 @@ export function drawHUD() {
   line('CREDITS ' + game.credits);
   line('SCORE   ' + game.score);
   line('LEVEL   ' + game.level);
-  // fuel readout + bar
+  // fuel readout + bar; a dry tank shows the vapor reserve draining instead
   const cap = fuelCapacity();
-  ctx.fillStyle = '#e0e0e0';
-  ctx.fillText('FUEL    ' + Math.max(0, Math.floor(lander.fuel)), 24, y);
+  const onReserve = lander.fuel <= 0;
+  ctx.fillStyle = onReserve ? '#ffa726' : '#e0e0e0';
+  ctx.fillText(onReserve ? 'RESERVE' : 'FUEL    ' + Math.max(0, Math.floor(lander.fuel)), 24, y);
   ctx.strokeStyle = '#888';
   ctx.strokeRect(172, y - 14, 130, 14);
-  ctx.fillStyle = lander.fuel > cap * 0.2 ? '#4caf50' : '#ff5252';
-  ctx.fillRect(172, y - 14, Math.max(0, lander.fuel / cap) * 130, 14);
+  ctx.fillStyle = onReserve ? '#ffa726' : lander.fuel > cap * 0.2 ? '#4caf50' : '#ff5252';
+  ctx.fillRect(172, y - 14, Math.max(0, onReserve ? lander.reserve / RESERVE_BURN : lander.fuel / cap) * 130, 14);
   y += 27;
   if (unlocks.weapon >= 1) {
     const label = unlocks.weapon >= 3 ? 'S.BOMBS ' : 'BOMBS   ';

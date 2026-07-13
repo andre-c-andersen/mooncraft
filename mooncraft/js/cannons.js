@@ -9,6 +9,7 @@ import {
 } from './config.js';
 import { terrainYAt } from './terrain.js';
 import { hitShip } from './lander.js';
+import { playSfx } from './audio.js';
 
 export function cannonCount() {
   // one cannon at level 2, another every other level — no cap; terrain
@@ -126,6 +127,7 @@ export function updateCannons() {
         c.phase = 'beam';
         c.timer = LASER_BEAM_TIME;
         c.beamHit = false;
+        playSfx('laserFire');
       } else if (c.phase === 'beam') {
         // the beam persists for several frames but counts as ONE projectile:
         // it lands at most one hit, so it spends at most one shield charge
@@ -159,8 +161,10 @@ export function updateCannons() {
           c.phase = 'aim';
           c.timer = c.aimTotal = laserAimTime();
           c.beamAngle = c.angle; // lock: the thin line shows exactly where the beam fires
+          playSfx('laserCharge', { fit: c.timer / 60 }); // whine spans the telegraph
         } else {
           c.cooldown = fireCooldown();
+          playSfx('cannonFire', { jitter: 0.15 });
           const sp = slugSpeed();
           game.slugs.push({
             x: c.x + Math.cos(c.angle) * 24,

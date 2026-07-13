@@ -16,6 +16,7 @@ import {
   entry, maybeStartEntry, entryMove, entryCycle, entryConfirm, entryCancel, drawHiscores,
 } from './hiscores.js';
 import { settings } from './settings.js';
+import { audioFrame, unlockAudio } from './audio.js';
 import { keys } from './input/keyboard.js';
 import { readGamepad } from './input/gamepad.js';
 import { touch, drawTouchControls, drawTouchGear } from './input/touch.js';
@@ -23,6 +24,10 @@ import { perfFrame, drawPerf } from './perf.js';
 
 function update() {
   const { pad, edge } = readGamepad();
+
+  // gamepad presses aren't DOM gestures, so the audio unlock listeners never
+  // see them — nudge the context here (a no-op where activation is missing)
+  if (pad && (edge.a || edge.bBtn || edge.xBtn || edge.start || edge.back)) unlockAudio();
 
   if (pad && edge.back) menu.open = !menu.open;
 
@@ -111,6 +116,9 @@ function step() {
   if (game.state === 'landed' && prevState !== 'landed') shopSelectLaunch();
   if (game.state === 'crashed' && prevState !== 'crashed' && game.lives <= 0) maybeStartEntry();
   prevState = game.state;
+  // thruster sound follows the actual burn (fuel-gated), silent when paused
+  const l = game.lander;
+  audioFrame(!menu.open && game.state === 'flying' && l && l.thrusting ? l.thrustAmt : 0);
   if (!menu.open) {
     updateCannons();
     updateBombs();

@@ -65,6 +65,43 @@ runFrames(30);
 keyUp('ArrowUp');
 assert(game.lander.fuel < fuelBefore, 'thrusting burns fuel');
 
+// the thruster sound target follows the fuel-gated burn
+const { audio, unlockAudio } = await importGame('audio.js');
+unlockAudio(); // headless: no AudioContext — must stay a silent no-op
+keyDown('ArrowUp');
+runFrames(2);
+assert(audio.thrust === 1, 'keyboard thrust drives the thruster sound at full level');
+keyUp('ArrowUp');
+runFrames(2);
+assert(audio.thrust === 0, 'releasing thrust silences the thruster');
+
+// a dry tank leaves a vapor reserve: enough Δv to flare a landing, not to fly on
+{
+  const { RESERVE_POWER, RESERVE_BURN } = await importGame('config.js');
+  const l = game.lander;
+  const fuelSaved = l.fuel;
+  game.cannons.length = game.slugs.length = game.asteroids.length = 0; // quiet skies for a 4s hover
+  l.fuel = 0;
+  l.angle = 0;
+  l.vy = 2.0;
+  l.y = 100;
+  assert(l.reserve === RESERVE_BURN, 'each attempt starts with a full vapor reserve');
+  keyDown('ArrowUp');
+  runFrames(30);
+  assert(l.thrusting && l.thrustAmt === RESERVE_POWER, 'dry-tank burn runs at reserve power');
+  assert(audio.thrust === RESERVE_POWER, 'the reserve burn sounds dimmed to match');
+  assert(l.vy < 2.0, 'the reserve genuinely brakes a descent');
+  assert(l.fuel === 0 && l.reserve === RESERVE_BURN - 30, 'vapor burn drains the reserve, not fuel');
+  runFrames(RESERVE_BURN - 30 + 5); // drain the rest
+  assert(l.reserve <= 0 && !l.thrusting, 'the reserve runs dry — no flying on an empty tank');
+  const vyDry = l.vy;
+  runFrames(30);
+  assert(l.vy > vyDry, 'past the reserve, gravity wins');
+  keyUp('ArrowUp');
+  l.fuel = fuelSaved;
+  l.reserve = RESERVE_BURN;
+}
+
 // a real touchdown: pad + fuel + full speed bonus, paid and itemized
 {
   const pad = game.pads[0];
@@ -160,12 +197,16 @@ assert(Math.abs(thrustPower() - 0.111) < 1e-9, 'thruster upgrades raise thrust t
 }
 
 // shield: one charge blocks exactly one projectile — no immunity window
+const pingsBefore = audio.sfx.shieldHit || 0;
 game.slugs.push({ x: game.lander.x, y: game.lander.y, vx: 0, vy: 0, life: 60 });
 runFrames(1);
 assert(game.state === 'flying' && game.lander.shield === 0, 'shield absorbs a slug');
+assert((audio.sfx.shieldHit || 0) === pingsBefore + 1, 'an absorbed hit plays the shield ping');
+const boomsBefore = audio.sfx.shipCrash || 0;
 game.slugs.push({ x: game.lander.x, y: game.lander.y, vx: 0, vy: 0, life: 60 });
 runFrames(1);
 assert(game.state === 'crashed', 'second projectile kills — no blanket immunity');
+assert((audio.sfx.shipCrash || 0) === boomsBefore + 1, 'a destroyed ship plays the crash boom');
 pressKey(' '); // retry
 assert(game.lander.shield === 1, 'shield recharges each attempt');
 
@@ -180,6 +221,36 @@ assert(game.lander.shield === 1, 'shield recharges each attempt');
   assert(game.state === 'flying' && game.lander.shield === 0,
     'laser beam consumes exactly one shield charge, not all of them');
   game.cannons.splice(game.cannons.indexOf(fake), 1);
+}
+
+// combat sounds: gun crack on a slug, laser charge at telegraph start,
+// laser fire when the beam goes live
+{
+  const before = { ...audio.sfx };
+  // a lone laser and gun aimed away from the ship, frames from opening fire
+  const snd = {
+    x: game.lander.x - 100, y: game.lander.y, angle: Math.PI, cooldown: 1,
+    type: 'laser', phase: 'idle', timer: 0, aimTotal: 0, beamAngle: 0, beamHit: false,
+  };
+  const gun = {
+    x: game.lander.x - 200, y: game.lander.y, angle: Math.PI, cooldown: 2,
+    type: 'gun', phase: 'idle', timer: 0, aimTotal: 0, beamAngle: 0, beamHit: false,
+  };
+  game.cannons = [snd, gun];
+  game.slugs = [];
+  game.asteroids = [];
+  game.lander.y = 150;
+  game.lander.vy = 0;
+  runFrames(2); // cooldowns expire → telegraph starts, slug fires
+  assert(snd.phase === 'aim' && (audio.sfx.laserCharge || 0) === (before.laserCharge || 0) + 1,
+    'telegraph start plays the charge sound');
+  assert(game.slugs.length === 1 && (audio.sfx.cannonFire || 0) === (before.cannonFire || 0) + 1,
+    'a fired slug plays the cannon sound');
+  runFrames(snd.timer + 2); // aim runs out → beam ignites
+  assert(snd.phase === 'beam' && (audio.sfx.laserFire || 0) === (before.laserFire || 0) + 1,
+    'beam ignition plays the fire sound');
+  game.cannons = [];
+  game.slugs = [];
 }
 
 // a consumed charge recharges after ~4 quiet seconds
@@ -201,8 +272,10 @@ assert(game.lander.shield === 1, 'shield recharges each attempt');
 }
 
 // bombs always drop one per press — no volley mechanic
+const clunksBefore = audio.sfx.bombRelease || 0;
 pressKey('b');
 assert(game.lander.bombs === 2 && game.bombs.length === 1, 'one press drops exactly one bomb');
+assert((audio.sfx.bombRelease || 0) === clunksBefore + 1, 'a dropped bomb plays the release clunk');
 
 // retro assist: F toggles it on; ship tilts against x-travel
 // (pin the tier to 2 so landing assist doesn't take over)
@@ -299,8 +372,10 @@ assert(game.bombs.length === 1 && game.bombs.every(b => b.super), 'super bombs f
   game.cannons = [{ x: bx, y: by, type: 'gun', angle: 0, cooldown: 9999 }];
   game.asteroids = [];
   let credits = game.credits;
+  const boomsBefore2 = audio.sfx.bombExplosion || 0;
   detonate(bx, by, false);
   assert(game.credits === credits + 75 && game.cannons.length === 0, 'destroyed cannon pays 75 CR');
+  assert((audio.sfx.bombExplosion || 0) === boomsBefore2 + 1, 'every detonation plays the blast boom');
   game.asteroids.push({ x: bx, y: by, vx: 0, vy: 0, r: 12, rot: 0, vrot: 0, verts: Array(8).fill(1) });
   credits = game.credits;
   detonate(bx, by, false);
@@ -501,18 +576,37 @@ assert(game.bombs.length === 1 && game.bombs.every(b => b.super), 'super bombs f
 
 // menu still pauses
 pressKey('Escape');
-const { menu } = await importGame('menu.js');
+const { menu, menuItems, menuAdjust } = await importGame('menu.js');
 assert(menu.open, 'escape opens menu');
 const xBefore = game.lander.x;
+keyDown('ArrowUp');
 runFrames(10);
 assert(game.lander.x === xBefore, 'game pauses while menu open');
+assert(audio.thrust === 0, 'thruster sound is silent while paused');
+keyUp('ArrowUp');
 pressKey('Escape');
 assert(!menu.open, 'escape closes menu');
+
+// volume sliders live in the menu and persist
+{
+  const { settings } = await importGame('settings.js');
+  pressKey('Escape');
+  menu.index = menuItems.findIndex(it => it.key === 'musicVol');
+  assert(menu.index >= 0 && menuItems.some(it => it.key === 'sfxVol'),
+    'music and SFX volume rows exist in the menu');
+  const before = settings.musicVol;
+  menuAdjust(-1);
+  assert(Math.abs(settings.musicVol - (before - 0.05)) < 1e-9, 'music volume adjusts in 5% steps');
+  assert(JSON.parse(h.store.moonLanderSettings).musicVol === settings.musicVol,
+    'volume changes persist to settings storage');
+  menuAdjust(1);
+  pressKey('Escape');
+}
 
 // RESET PROGRESS menu item wipes the run
 game.credits = 555;
 pressKey('Escape');
-menu.index = 4; // RESET PROGRESS row
+menu.index = menuItems.findIndex(it => it.action === 'wipe'); // RESET PROGRESS row
 pressKey('Enter');
 assert(!menu.open, 'reset progress closes the menu');
 assert(game.credits === 0 && game.level === game.startLevel && game.lives === 3

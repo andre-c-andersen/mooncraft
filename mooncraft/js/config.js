@@ -1,6 +1,6 @@
 // Gameplay tuning constants.
 
-export const VERSION = '1.24';
+export const VERSION = '1.37';
 
 // fixed logical play area — scaled to fit the screen, letterboxed, same view everywhere.
 // 2:1 splits the difference between phone screens (~19.5:9) and laptop browser
@@ -37,6 +37,12 @@ export const PAD_REVEAL_MAX = 1200;  // …capped at 20 s
 
 export const START_FUEL = 500;
 export const FUEL_TANK_STEP = 150; // extra capacity per fuel tank upgrade
+
+// dry tank: vapor in the lines — reduced thrust from a small per-attempt
+// impulse budget: enough Δv to flare one landing, drained in seconds if you
+// try to fly on it
+export const RESERVE_POWER = 0.5; // fraction of normal thrust when the tank is dry
+export const RESERVE_BURN = 60;   // full-throttle frames of vapor per attempt
 export const BOMB_PACKS = [0, 1, 3, 3, 6]; // bombs per attempt, by weapon tier
 export const START_LIVES = 3;
 
@@ -75,6 +81,14 @@ export const LASER_HIT_RADIUS = 12;
 
 export const ASTEROID_LEVELS = [6, 11, 16, 21, 25]; // wave size grows by one at each
 export const ASTEROID_GRAVITY = 0.4;   // fraction of ship gravity — asteroids fall floatier
+
+// sound: gain time-constants (seconds) for setTargetAtTime smoothing
+export const THRUST_FADE_IN = 0.03;  // thruster fade-in when the burn rises…
+export const THRUST_FADE_OUT = 0.12; // …and the slower fade-out when it dies
+export const VOLUME_SMOOTH = 0.05;   // volume-slider smoothing (no zipper clicks)
+export const THRUST_VOL = 1.0;       // thruster loop gain — loudness is baked into the sample (−11.5 LUFS, peaks −1 dB)
+export const THRUST_VOL_CURVE = 0.6; // throttle→gain exponent — partial burns (hover ≈ 25%) stay clearly audible
+export const MUSIC_TRIM = 0.5;       // music bus trim — at equal sliders the music sits under the SFX, not over them
 
 export const BOMB_EJECT = 2.2;    // ejection speed along the ship's down-axis
 export const BOMB_RECOIL = 1.6;   // Newton: equal-and-opposite kick on the ship

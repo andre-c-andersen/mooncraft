@@ -8,10 +8,12 @@ import {
 } from './config.js';
 import { terrainYAt, deformTerrain } from './terrain.js';
 import { hitShip } from './lander.js';
+import { playSfx } from './audio.js';
 
 export function dropBomb() {
   const lander = game.lander;
   if (game.state !== 'flying' || game.unlocks.weapon < 1 || lander.bombs <= 0) return;
+  playSfx('bombRelease', { jitter: 0.1 });
   // ship's down-axis (opposite the thrust vector)
   const dx = -Math.sin(lander.angle), dy = Math.cos(lander.angle);
   game.bombs.push({
@@ -29,6 +31,7 @@ export function dropBomb() {
 
 export function detonate(x, y, isSuper) {
   const radius = isSuper ? SUPER_BLAST_RADIUS : BLAST_RADIUS;
+  playSfx('bombExplosion', { jitter: 0.12, gain: isSuper ? 1 : 0.75 });
   game.booms.push({ x, y, r: 6, max: radius });
   if (isSuper) deformTerrain(x, radius, 55); // super blasts crater the moonscape
   const n = isSuper ? 80 : 50;

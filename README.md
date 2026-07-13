@@ -4,9 +4,9 @@ Small browser games — vanilla HTML/CSS/JS, no dependencies, no build step. The
 
 Live at **https://games.andersen.im** via GitHub Pages.
 
-## 🌙 Moon Lander — v1.24
+## 🌙 Moon Lander — v1.37
 
-A classic lunar lander arcade game — with sci-fi defense cannons, laser turrets, droppable bombs, asteroids, an upgrade economy, touch controls, and full Xbox controller support.
+A classic lunar lander arcade game — with sci-fi defense cannons, laser turrets, droppable bombs, asteroids, an upgrade economy, sound, touch controls, and full Xbox controller support.
 
 Play it at **https://games.andersen.im/mooncraft/**
 
@@ -60,6 +60,7 @@ mooncraft/
     bombs.js        bombs, detonations, blast rings
     asteroids.js    asteroid waves
     particles.js    exhaust/explosion particles
+    audio.js        music + thruster loops, one-shot SFX (Web Audio)
     hud.js          readouts, docking indicator, banners
     hiscores.js     local top-10 board + three-letter name entry
     shop.js         supply depot (credits → unlocks)
@@ -70,6 +71,7 @@ mooncraft/
       keyboard.js   key state + one-shot actions
       gamepad.js    polling + edge detection
       touch.js      slide pads + tap buttons for mobile
+  sounds/           music + thruster loops, laser one-shots (MP3)
 ```
 
 ## How to play
@@ -84,7 +86,7 @@ Landings earn **credits**, spent in the supply depot (shown after every landing)
 - **Shields**: three expensive tiers — each charge blocks exactly one projectile (a slug, a laser beam, an asteroid, or a blast; not bad landings). No immunity between hits: sustained fire will chew through the charges. A consumed charge recharges after ~4 quiet seconds; taking a hit restarts the timer.
 - **Landing gear**: three tiers — each raises how much descent speed and landing angle a touchdown tolerates; the docking indicator's box widens to match.
 - **Thrusters**: two tiers of stronger engines (+15% / +31% thrust) — snappier burns and easier saves, with a visibly longer exhaust flame.
-- **Fuel tanks**: three capacity upgrades.
+- **Fuel tanks**: three capacity upgrades. Running the tank dry isn't instant death: the lines hold a whiff of vapor — about a second of half-power thrust per attempt (the fuel bar turns into an orange RESERVE gauge). That's enough Δv to flare one landing, but nowhere near enough to fly on.
 - **Extra lives**: you start with 3 and earn a free one for landing on even-numbered levels; buy more at prices that climb with each purchase.
 
 From level 2, cannons appear — one more every other level, up to 12. Past the cap the firepower keeps growing at the same cadence as cannon shields, sprinkled randomly across the placed cannons (clusters happen — a faint cyan bubble and a tiny ×N tag show a cannon's charges). Each shield absorbs one bomb blast, super or not, so a shielded cannon takes one extra bomb per charge to destroy. Guns fire slugs that get faster as the cannon count grows, every cannon fires more often and leads your motion more accurately at higher levels, and every second cannon is a laser that telegraphs its shot with a thin red line before firing; the telegraph gets shorter as you climb. From level 6, asteroid waves fall from the sky — growing to five consecutive rocks per wave by level 25 and arriving faster at higher levels; bomb blasts destroy them for 25 credits each. Game over resets credits and unlocks — the run is the progression.
@@ -92,6 +94,8 @@ From level 2, cannons appear — one more every other level, up to 12. Past the 
 Alongside spendable credits, every earning also feeds a **score** that never goes down. Dying for good ranks the run on a local top-10 board (by level reached, then score); making the board opens arcade-style three-letter name entry — arrows/ENTER on keyboard (or just type), d-pad/A on a controller, tap the ▲▼ arrows and OK on touch. ESC or B skips the entry.
 
 Progress (level, credits, score, lives, unlocks) is saved in your browser, so a refresh resumes the run at the start of the current level. A game over wipes it, or use RESET PROGRESS in the settings menu (ESC, gamepad BACK, or the ⚙ button on touch screens). The high-score board survives both.
+
+Music loops in the background and the thruster rumble follows your actual burn — full for a key press, proportionally quieter on a half-pulled trigger, touch slider, or reserve sputter. The defenses are audible too: gun cannons crack off their slugs (each shot slightly detuned so volleys don't sound machine-stamped), a laser's charge-up whine spans the telegraph (re-pitched to fit, so it climbs faster when the warning is short), and the beam fires with a zap. Bombs clunk off the rack as they release and every blast booms — supers hit harder than regular bombs; a shield charge eating a hit pings; losing the ship — to terrain, a decoy pad, or anything the defenses throw — goes out with a proper boom. Music and sound-effect volumes have their own sliders in the settings menu. Browsers only allow audio after you interact with the page, so the music starts on your first input.
 
 ### Keyboard
 
@@ -117,7 +121,7 @@ Progress (level, credits, score, lives, unlocks) is saved in your browser, so a 
 | Start | Launch next level / retry |
 | Back | Settings menu |
 
-The settings menu has adjustable rotation sensitivity, stick deadzone, and trigger threshold — saved in your browser.
+The settings menu has adjustable music and sound-effect volumes, rotation sensitivity, stick deadzone, and trigger threshold — saved in your browser.
 
 ### Touch (iOS / Android)
 

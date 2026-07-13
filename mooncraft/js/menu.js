@@ -11,6 +11,8 @@ const touchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
 export const menu = { open: false, index: 0 };
 
 export const menuItems = [
+  { label: 'MUSIC VOLUME',         key: 'musicVol',   min: 0,    max: 1,   step: 0.05, fmt: v => Math.round(v * 100) + '%' },
+  { label: 'SFX VOLUME',           key: 'sfxVol',     min: 0,    max: 1,   step: 0.05, fmt: v => Math.round(v * 100) + '%' },
   { label: 'ROTATION SENSITIVITY', key: 'rotSens',    min: 0.2,  max: 2.5, step: 0.1,  fmt: v => v.toFixed(1) + 'x' },
   { label: 'STICK DEADZONE',       key: 'deadzone',   min: 0.05, max: 0.6, step: 0.05, fmt: v => Math.round(v * 100) + '%' },
   { label: 'TRIGGER THRESHOLD',    key: 'trigThresh', min: 0.05, max: 0.6, step: 0.05, fmt: v => Math.round(v * 100) + '%' },
@@ -34,7 +36,7 @@ export function menuAdjust(d) {
 // touch: tap a row to use it — left/right halves adjust sliders, action rows activate
 export function menuTapAt(x, y) {
   const { W, H } = game;
-  const top = H / 2 - 190;
+  const top = H / 2 - 230;
   const leftCx = W >= 700 ? W * 0.27 : W / 2;
   if (Math.abs(x - leftCx) > 240) return;
   menuItems.forEach((it, i) => {
@@ -98,7 +100,7 @@ export function drawMenu() {
   const { W, H } = game;
   ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
   ctx.fillRect(0, 0, W, H);
-  const top = H / 2 - 190;
+  const top = H / 2 - 230; // eight rows now — start higher so the list fits the view
   const wide = W >= 700; // two columns; settings-only on narrow screens
   const leftCx = wide ? W * 0.27 : W / 2;
   const rightCx = W * 0.73;

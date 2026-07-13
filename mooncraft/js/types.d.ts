@@ -7,6 +7,7 @@ interface Lander {
   vx: number; vy: number;
   angle: number;
   fuel: number;
+  reserve: number;
   thrusting: boolean;
   thrustAmt: number;
   bombs: number;

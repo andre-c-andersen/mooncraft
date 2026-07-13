@@ -26,6 +26,7 @@ assert(game.credits === 0 && game.score === 0, 'credits and score start at zero'
   assert(multsAt(10) === '2,3', 'easy pad gone from level 10');
   assert(multsAt(19) === '2,3', 'medium pad survives to level 19');
   assert(multsAt(20) === '3', 'only the hard pad from level 20');
+  assert(multsAt(25) === '3,3,3', 'three decoy-era pads from level 25');
   game.level = 20;
   genTerrain(); // restore level-20 terrain for the rest of the run
 }
@@ -348,6 +349,52 @@ assert(game.bombs.length === 1 && game.bombs.every(b => b.super), 'super bombs f
   // or two below the cap — but wanted defense is always conserved
   assert(totalShields() === cannonCount() - game.cannons.length,
     'wanted defense conserved at level ' + game.level);
+}
+
+// decoy pads: from level 25 three gray pads, one real, revealed on a timer
+{
+  const { genTerrain, padAt, padRevealDelay, padsRevealed } = await importGame('terrain.js');
+  const levelWas = game.level;
+  game.level = 30;
+  genTerrain();
+  game.state = 'crashed';
+  pressKey(' '); // fresh attempt: age 0, real pad re-rolled
+  assert(game.pads.length === 3 && game.pads.every(p => p.mult === 3),
+    'three identical hard pads at level 30');
+  assert(game.pads.filter(p => p.real).length === 1, 'exactly one pad is real');
+  assert(padRevealDelay() === 375, 'reveal cooldown grows with level (375 frames at 30)');
+  game.level = 999;
+  assert(padRevealDelay() === 1200, 'reveal cooldown caps at 20s');
+  game.level = 30;
+  const real = game.pads.find(p => p.real);
+  const decoy = game.pads.find(p => !p.real);
+  const rcx = (real.x1 + real.x2) / 2, dcx = (decoy.x1 + decoy.x2) / 2;
+  assert(!padsRevealed() && padAt(rcx) === null, 'no pad is landable before the reveal');
+  game.lander.age = padRevealDelay();
+  assert(padsRevealed() && padAt(rcx) === real && padAt(dcx) === null,
+    'after the reveal only the real pad is landable');
+
+  // touching a decoy is a crash like any other terrain
+  const livesWas = game.lives;
+  Object.assign(game.lander, { x: dcx, y: decoy.y - 40, vx: 0, vy: 0.5, angle: 0 });
+  runFrames(120);
+  assert(game.state === 'crashed' && game.lives === livesWas - 1, 'a decoy pad is not a landing');
+
+  pressKey(' '); // retry: the scan restarts and the real pad re-rolls
+  assert(!padsRevealed(), 'the scan cooldown restarts every attempt');
+  const real2 = game.pads.find(p => p.real);
+  Object.assign(game.lander, {
+    x: (real2.x1 + real2.x2) / 2, y: real2.y - 40, vx: 0, vy: 0.5, angle: 0,
+    age: padRevealDelay(),
+  });
+  runFrames(150);
+  assert(game.state === 'landed', 'the revealed real pad still lands');
+  assert(game.landingBreakdown.speed === 150, 'the speed-bonus clock starts at the reveal');
+
+  game.level = levelWas;
+  genTerrain();
+  game.state = 'crashed';
+  pressKey(' '); // back on the pre-decoy level for the rest of the run
 }
 
 // perf overlay toggles with P and draws without breaking the loop

@@ -2,6 +2,7 @@
 
 import { game } from './state.js';
 import { ctx } from './canvas.js';
+import { DECOY_PADS_LEVEL, PAD_REVEAL_BASE, PAD_REVEAL_STEP, PAD_REVEAL_MAX } from './config.js';
 
 export function genStars() {
   game.stars = [];
@@ -36,15 +37,18 @@ export function genTerrain() {
   const baseY = H * (0.55 + Math.random() * 0.12);
   const shapeAt = t => baseY + depth * (1 - 4 * (t - 0.5) ** 2) - depth / 2;
 
-  // choose non-adjacent pad segments, one per difficulty still in play
+  // choose non-adjacent pad segments, one per difficulty still in play —
+  // except in the decoy era: three identical hard pads, only one of them real
   const inPlay = PAD_TYPES.filter(t => game.level <= t.maxLevel);
+  const types = game.level >= DECOY_PADS_LEVEL
+    ? [PAD_TYPES[2], PAD_TYPES[2], PAD_TYPES[2]]
+    : [...inPlay].sort(() => Math.random() - 0.5);
   const padSegs = [];
-  while (padSegs.length < inPlay.length) {
+  while (padSegs.length < types.length) {
     const s = 3 + Math.floor(Math.random() * (segs - 6));
     if (padSegs.every(p => Math.abs(p - s) >= 3)) padSegs.push(s);
   }
   padSegs.sort((a, b) => a - b);
-  const types = [...inPlay].sort(() => Math.random() - 0.5);
   let x = 0;
   let y = shapeAt(0);
   game.terrain.push({ x, y });
@@ -67,6 +71,23 @@ export function genTerrain() {
   // make the last point reach the right edge
   game.terrain[game.terrain.length - 1].x = W;
   pristine = game.terrain.map(pt => ({ x: pt.x, y: pt.y }));
+  pickRealPad();
+}
+
+// how long the pads stay gray at the start of an attempt
+export function padRevealDelay() {
+  if (game.level < DECOY_PADS_LEVEL) return 0;
+  return Math.min(PAD_REVEAL_MAX, PAD_REVEAL_BASE + (game.level - DECOY_PADS_LEVEL) * PAD_REVEAL_STEP);
+}
+
+export function padsRevealed() {
+  return !game.lander || game.lander.age >= padRevealDelay();
+}
+
+// re-rolled every attempt, so dying to scout the real pad teaches nothing
+export function pickRealPad() {
+  const real = Math.floor(Math.random() * game.pads.length);
+  game.pads.forEach((p, i) => { p.real = game.level < DECOY_PADS_LEVEL || i === real; });
 }
 
 // craters heal between attempts: dying restores the original moonscape
@@ -99,8 +120,10 @@ export function terrainYAt(x) {
   return game.H;
 }
 
+// only a revealed, real pad counts as landable ground
 export function padAt(x) {
-  return game.pads.find(p => x >= p.x1 && x <= p.x2) || null;
+  if (!padsRevealed()) return null;
+  return game.pads.find(p => p.real && x >= p.x1 && x <= p.x2) || null;
 }
 
 export function drawStars() {
@@ -129,17 +152,24 @@ export function drawTerrain() {
   for (const pt of terrain) ctx.lineTo(pt.x, pt.y);
   ctx.stroke();
 
-  // pads, color-coded by difficulty
+  // pads, color-coded by difficulty; decoy-era pads stay gray with a ?
+  // until the scan reveals the real one, then dead decoys go dark
+  const revealed = padsRevealed();
   for (const p of pads) {
-    ctx.strokeStyle = p.color;
+    const live = p.real && revealed;
+    const color = live ? p.color : (revealed ? '#555' : '#9e9e9e');
+    ctx.strokeStyle = color;
     ctx.lineWidth = 4;
     ctx.beginPath();
     ctx.moveTo(p.x1, p.y);
     ctx.lineTo(p.x2, p.y);
     ctx.stroke();
-    ctx.fillStyle = p.color;
-    ctx.font = '12px Courier New';
-    ctx.textAlign = 'center';
-    ctx.fillText('x' + p.mult, (p.x1 + p.x2) / 2, p.y + 16);
+    const label = live ? 'x' + p.mult : (revealed ? '' : '?');
+    if (label) {
+      ctx.fillStyle = color;
+      ctx.font = '12px Courier New';
+      ctx.textAlign = 'center';
+      ctx.fillText(label, (p.x1 + p.x2) / 2, p.y + 16);
+    }
   }
 }

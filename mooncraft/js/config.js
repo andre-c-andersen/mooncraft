@@ -1,6 +1,6 @@
 // Gameplay tuning constants.
 
-export const VERSION = '1.20';
+export const VERSION = '1.21';
 
 // fixed logical play area — scaled to fit the screen, letterboxed, same view everywhere.
 // 2:1 splits the difference between phone screens (~19.5:9) and laptop browser
@@ -19,6 +19,14 @@ export const SAFE_ANGLE = 0.25; // radians from vertical
 
 export const SPEED_BONUS_MAX = 150;   // landing credits for a lightning-fast touchdown…
 export const SPEED_BONUS_DECAY = 10;  // …shrinking by this much per second of attempt time
+
+// decoy pads: from this level three identical hard pads spawn, all gray —
+// only one is real, revealed after a scan cooldown, so a suicide burn can't
+// dive at a known pad from frame one. Re-rolled every attempt.
+export const DECOY_PADS_LEVEL = 25;
+export const PAD_REVEAL_BASE = 300;  // frames ≈ 5 s at the first decoy level…
+export const PAD_REVEAL_STEP = 15;   // …+0.25 s per level beyond it…
+export const PAD_REVEAL_MAX = 1200;  // …capped at 20 s
 
 export const START_FUEL = 500;
 export const FUEL_TANK_STEP = 150; // extra capacity per fuel tank upgrade

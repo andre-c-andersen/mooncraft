@@ -10,7 +10,7 @@ import {
   LAND_ASSIST_DESCENT, LAND_ASSIST_DESCENT_MIN, LAND_ASSIST_DESCENT_MAX,
   SHIELD_COOLDOWN, SHIELD_RECHARGE_FRAMES,
 } from './config.js';
-import { terrainYAt, padAt } from './terrain.js';
+import { terrainYAt, padAt, padRevealDelay } from './terrain.js';
 
 // highest terrain (smallest y) along the horizontal span between two x's
 function terrainCrestBetween(x1, x2) {
@@ -220,7 +220,10 @@ export function updateLander(rot, thrustAmt, assistHeld) {
       // payout: pad multiplier + leftover fuel + a bonus for landing fast
       const padCr = 50 * pad.mult;
       const fuelCr = Math.floor(lander.fuel / 10);
-      const speedCr = Math.max(0, SPEED_BONUS_MAX - Math.floor(lander.age / 60) * SPEED_BONUS_DECAY);
+      // the speed clock starts at the pad reveal, not at launch — decoy-era
+      // waits don't eat the bonus
+      const speedAge = Math.max(0, lander.age - padRevealDelay());
+      const speedCr = Math.max(0, SPEED_BONUS_MAX - Math.floor(speedAge / 60) * SPEED_BONUS_DECAY);
       earn(padCr + fuelCr + speedCr);
       game.landingBreakdown = { pad: padCr, fuel: fuelCr, speed: speedCr };
       // a free life every other level, awarded at touchdown

@@ -4,7 +4,7 @@ import { game, fuelCapacity, bombsPerAttempt, safeVY, safeAngle, cheat } from '.
 import { ctx } from './canvas.js';
 import { SAFE_VX, VERSION } from './config.js';
 import { entry } from './hiscores.js';
-import { padAt } from './terrain.js';
+import { padAt, padsRevealed, padRevealDelay } from './terrain.js';
 import { gamepad } from './input/gamepad.js';
 import { touch } from './input/touch.js';
 
@@ -30,9 +30,14 @@ function drawLandingIndicator(x, y) {
   const close = Math.abs(fx) > 0.75 || fy > 0.75;
   const pad = padAt(lander.x); // is a landing pad directly below right now?
 
+  const scanning = !padsRevealed();
   let color, status;
   if (!speedOk) { color = '#ff5252'; status = 'TOO FAST'; }
   else if (!angleOk) { color = '#ff5252'; status = 'BAD ANGLE'; }
+  else if (scanning) { // decoy era: counting down to the real pad's reveal
+    color = '#9e9e9e';
+    status = 'SCAN ' + Math.ceil((padRevealDelay() - lander.age) / 60) + 's';
+  }
   else if (!pad) { color = '#ffb300'; status = 'NO PAD'; }
   else if (close) { color = '#ffb300'; status = 'CAUTION'; }
   else { color = '#4caf50'; status = 'LAND OK'; }

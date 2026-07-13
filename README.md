@@ -4,7 +4,7 @@ Small browser games — vanilla HTML/CSS/JS, no dependencies, no build step. The
 
 Live at **https://games.andersen.im** via GitHub Pages.
 
-## 🌙 Moon Lander — v1.16
+## 🌙 Moon Lander — v1.17
 
 A classic lunar lander arcade game — with sci-fi defense cannons, laser turrets, droppable bombs, asteroids, an upgrade economy, touch controls, and full Xbox controller support.
 
@@ -76,7 +76,7 @@ Land gently on a pad. A safe landing needs low speed and a nearly upright ship �
 
 Landings earn **credits**, spent in the supply depot (shown after every landing):
 
-- **Weapons**: bombs ×1 → bombs ×3 → super bombs ×3 (bigger blast that craters the terrain — craters heal if you die) → super bombs ×6. Always dropped one per press; upgrades grow the rack. Destroyed cannons pay 75 credits.
+- **Weapons**: bombs ×1 → bombs ×3 → super bombs ×3 (bigger blast that craters the terrain — craters heal if you die) → super bombs ×6. Always dropped one per press; upgrades grow the rack. Destroyed cannons pay 75 credits, blasted asteroids 25.
 - **Fly assist** (toggled with the assist button): level assist eases the ship upright; retro assist tilts it against your horizontal travel so thrusting brakes you; landing assist aims the rocket so thrusting steers you onto the nearest pad — you still fly the throttle.
 - **Landing computer**: adds the docking-style landing indicator to the HUD — ball-in-brackets safety readout, pad-below lamp, and LAND OK / TOO FAST / BAD ANGLE status.
 - **Shields**: three expensive tiers — each charge blocks exactly one projectile (a slug, a laser beam, an asteroid, or a blast; not bad landings). No immunity between hits: sustained fire will chew through the charges. A consumed charge recharges after ~4 quiet seconds; taking a hit restarts the timer.
@@ -85,7 +85,7 @@ Landings earn **credits**, spent in the supply depot (shown after every landing)
 - **Fuel tanks**: three capacity upgrades.
 - **Extra lives**: you start with 3 and earn a free one for landing on even-numbered levels; buy more at prices that climb with each purchase.
 
-From level 2, cannons appear — one more every other level, with no upper limit. Guns fire slugs that get faster as the cannon count grows, every cannon fires more often and leads your motion more accurately at higher levels, and every second cannon is a laser that telegraphs its shot with a thin red line before firing; the telegraph gets shorter as you climb. From level 6, asteroid waves fall from the sky — growing to five consecutive rocks per wave by level 25 and arriving faster at higher levels; bomb blasts destroy them. Game over resets credits and unlocks — the run is the progression.
+From level 2, cannons appear — one more every other level, with no upper limit. Guns fire slugs that get faster as the cannon count grows, every cannon fires more often and leads your motion more accurately at higher levels, and every second cannon is a laser that telegraphs its shot with a thin red line before firing; the telegraph gets shorter as you climb. From level 6, asteroid waves fall from the sky — growing to five consecutive rocks per wave by level 25 and arriving faster at higher levels; bomb blasts destroy them for 25 credits each. Game over resets credits and unlocks — the run is the progression.
 
 Progress (level, credits, lives, unlocks) is saved in your browser, so a refresh resumes the run at the start of the current level. A game over wipes it, or use RESET PROGRESS in the settings menu (ESC, gamepad BACK, or the ⚙ button on touch screens).
 

@@ -4,6 +4,7 @@ import { game, bombsAreSuper } from './state.js';
 import { ctx } from './canvas.js';
 import {
   GRAVITY, BOMB_EJECT, BOMB_RECOIL, BLAST_RADIUS, SUPER_BLAST_RADIUS,
+  CANNON_BOUNTY, ASTEROID_BOUNTY,
 } from './config.js';
 import { terrainYAt, deformTerrain } from './terrain.js';
 import { hitShip } from './lander.js';
@@ -45,7 +46,7 @@ export function detonate(x, y, isSuper) {
   for (let i = game.cannons.length - 1; i >= 0; i--) {
     if (Math.hypot(game.cannons[i].x - x, game.cannons[i].y - y) < radius) {
       game.cannons.splice(i, 1);
-      game.credits += 75;
+      game.credits += CANNON_BOUNTY;
     }
   }
   // survivors near a crater settle onto the deformed ground
@@ -55,7 +56,10 @@ export function detonate(x, y, isSuper) {
   }
   for (let i = game.asteroids.length - 1; i >= 0; i--) {
     const a = game.asteroids[i];
-    if (Math.hypot(a.x - x, a.y - y) < radius + a.r) game.asteroids.splice(i, 1);
+    if (Math.hypot(a.x - x, a.y - y) < radius + a.r) {
+      game.asteroids.splice(i, 1);
+      game.credits += ASTEROID_BOUNTY;
+    }
   }
   // your own blast can take you down too
   if (game.state === 'flying' && Math.hypot(game.lander.x - x, game.lander.y - y) < radius * 0.8) {

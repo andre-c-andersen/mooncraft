@@ -1,6 +1,6 @@
 // Gameplay tuning constants.
 
-export const VERSION = '1.16';
+export const VERSION = '1.17';
 
 // fixed logical play area — scaled to fit the screen, letterboxed, same view everywhere.
 // 2:1 splits the difference between phone screens (~19.5:9) and laptop browser
@@ -64,3 +64,5 @@ export const BOMB_EJECT = 2.2;    // ejection speed along the ship's down-axis
 export const BOMB_RECOIL = 1.6;   // Newton: equal-and-opposite kick on the ship
 export const BLAST_RADIUS = 55;
 export const SUPER_BLAST_RADIUS = 130;
+export const CANNON_BOUNTY = 75;   // credits for a cannon destroyed by a blast
+export const ASTEROID_BOUNTY = 25; // credits for an asteroid destroyed by a blast

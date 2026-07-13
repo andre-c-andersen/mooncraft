@@ -286,6 +286,23 @@ assert(game.bombs.length === 1 && game.bombs.every(b => b.super), 'super bombs f
   assert(terrainYAt(cx) === before, 'craters reset when the attempt restarts');
 }
 
+// blast bounties: a destroyed cannon pays 75 CR, a blasted asteroid 25 CR
+{
+  const { detonate } = await importGame('bombs.js');
+  game.lander.x = 100;
+  game.lander.y = 100; // keep the ship clear of the blasts
+  const bx = game.W - 200, by = 300;
+  game.cannons = [{ x: bx, y: by, type: 'gun', angle: 0, cooldown: 9999 }];
+  game.asteroids = [];
+  let credits = game.credits;
+  detonate(bx, by, false);
+  assert(game.credits === credits + 75 && game.cannons.length === 0, 'destroyed cannon pays 75 CR');
+  game.asteroids.push({ x: bx, y: by, vx: 0, vy: 0, r: 12, rot: 0, vrot: 0, verts: Array(8).fill(1) });
+  credits = game.credits;
+  detonate(bx, by, false);
+  assert(game.credits === credits + 25 && game.asteroids.length === 0, 'blasted asteroid pays 25 CR');
+}
+
 // perf overlay toggles with P and draws without breaking the loop
 {
   const { perf } = await importGame('perf.js');

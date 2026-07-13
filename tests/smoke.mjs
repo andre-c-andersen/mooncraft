@@ -16,7 +16,7 @@ assert(game.cannons.length >= 5 && game.cannons.length <= 10,
 assert(game.cannons.some(c => c.type === 'laser'), 'lasers present');
 assert(game.cannons[0].type === 'gun' && game.cannons[1].type === 'laser', 'alternation starts gun, laser');
 assert(game.pads.length === 1 && game.pads[0].mult === 3, 'only the hard pad at level 20+');
-assert(game.credits === 0 && game.score === undefined, 'credits replace score');
+assert(game.credits === 0 && game.score === 0, 'credits and score start at zero');
 
 // easier pads retire as levels climb
 {
@@ -82,13 +82,15 @@ assert(game.lander.fuel < fuelBefore, 'thrusting burns fuel');
     'fast landing earns the full speed bonus');
   assert(game.credits === creditsBefore + 50 * pad.mult + expectedFuel + 150,
     'landing pays pad + fuel + speed');
+  assert(game.score === game.credits, 'score tracks earnings one-to-one');
 }
 
 // --- shop flow (already landed above) ---
 game.state = 'landed';
 runFrames(1); // shop opens
 assert(shop.index === 8, 'LAUNCH is preselected when the shop opens');
-game.credits = 5000;
+const scoreBeforeShopping = game.score;
+game.credits = 5000; // handout, not earnings — score must not move
 shop.index = 0;
 pressKey('Enter'); // buy weapon tier 1: BOMBS ×1 (100)
 assert(game.unlocks.weapon === 1 && game.credits === 4900, 'bought bombs unlock');
@@ -126,6 +128,7 @@ pressKey('Enter'); // EXTRA LIFE (100)
 assert(game.lives === livesBefore + 1 && game.credits === 1730, 'bought extra life');
 pressKey('Enter'); // second life should cost more (180)
 assert(game.credits === 1550, 'life price escalates (180 for the second)');
+assert(game.score === scoreBeforeShopping, 'buying upgrades never reduces score');
 
 const levelBefore = game.level;
 pressKey(' '); // launch
@@ -372,6 +375,43 @@ assert(game.state === 'crashed' && game.lives === 0, 'final crash reaches game o
 pressKey(' ');
 assert(game.credits === 0 && game.unlocks.weapon === 0 && game.unlocks.assist === 0
   && game.lives === 3 && game.level === game.startLevel, 'game over resets credits, unlocks, lives, level');
+
+// a qualifying game over opens three-letter name entry; the board persists
+{
+  const { entry } = await importGame('hiscores.js');
+  assert(!entry.active && !('moonLanderHiscores' in h.store),
+    'zero-score game overs never reach the board');
+  game.score = 4200;
+  game.lives = 1;
+  game.state = 'flying';
+  runFrames(900); // fall to the final crash
+  assert(game.state === 'crashed' && game.lives === 0, 'hiscore run reaches game over');
+  assert(entry.active, 'a top-10 score opens name entry');
+  const diedAt = game.level;
+  pressKey(' ');
+  assert(game.state === 'crashed' && entry.active, 'SPACE cannot skip past name entry');
+  pressKey('ArrowUp');   // A -> B
+  pressKey('ArrowDown'); // back to A
+  pressKey('a');         // type ACE directly; typing hops to the next slot
+  pressKey('c');
+  pressKey('e');
+  pressKey('Enter');
+  assert(!entry.active && entry.rank === 0, 'ENTER records the name at rank 1');
+  const board = JSON.parse(h.store.moonLanderHiscores);
+  assert(board.length === 1 && board[0].name === 'ACE'
+    && board[0].level === diedAt && board[0].score === 4200, 'hiscore saved to localStorage');
+  pressKey(' ');
+  assert(game.state === 'flying' && game.score === 0, 'restart after entry resets the score');
+  assert(JSON.parse(h.store.moonLanderHiscores).length === 1, 'hiscores survive the fresh run');
+
+  // ranking: level reached beats raw score; empty runs never qualify
+  const { recordHiscore, qualifies } = await importGame('hiscores.js');
+  recordHiscore('LVL', diedAt + 5, 10);
+  recordHiscore('LOW', diedAt, 100);
+  assert(JSON.parse(h.store.moonLanderHiscores).map(e => e.name).join() === 'LVL,ACE,LOW',
+    'board ranks by level, then score');
+  assert(!qualifies(1, 0), 'a zero-score run never qualifies');
+}
 
 // long soak across states
 for (let round = 0; round < 4; round++) {

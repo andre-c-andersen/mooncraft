@@ -4,7 +4,7 @@ Small browser games — vanilla HTML/CSS/JS, no dependencies, no build step. The
 
 Live at **https://games.andersen.im** via GitHub Pages.
 
-## 🌙 Moon Lander — v1.18
+## 🌙 Moon Lander — v1.19
 
 A classic lunar lander arcade game — with sci-fi defense cannons, laser turrets, droppable bombs, asteroids, an upgrade economy, touch controls, and full Xbox controller support.
 
@@ -60,6 +60,7 @@ mooncraft/
     asteroids.js    asteroid waves
     particles.js    exhaust/explosion particles
     hud.js          readouts, docking indicator, banners
+    hiscores.js     local top-10 board + three-letter name entry
     shop.js         supply depot (credits → unlocks)
     menu.js         settings + how-to-play overlay
     settings.js     persisted settings (localStorage)
@@ -87,7 +88,9 @@ Landings earn **credits**, spent in the supply depot (shown after every landing)
 
 From level 2, cannons appear — one more every other level. Once the terrain can't fit more, the extra firepower keeps arriving as cannon shields instead, at the same cadence: each shield (a cyan dome) absorbs one blast, so shielded cannons take an extra bomb per charge to destroy. Guns fire slugs that get faster as the cannon count grows, every cannon fires more often and leads your motion more accurately at higher levels, and every second cannon is a laser that telegraphs its shot with a thin red line before firing; the telegraph gets shorter as you climb. From level 6, asteroid waves fall from the sky — growing to five consecutive rocks per wave by level 25 and arriving faster at higher levels; bomb blasts destroy them for 25 credits each. Game over resets credits and unlocks — the run is the progression.
 
-Progress (level, credits, lives, unlocks) is saved in your browser, so a refresh resumes the run at the start of the current level. A game over wipes it, or use RESET PROGRESS in the settings menu (ESC, gamepad BACK, or the ⚙ button on touch screens).
+Alongside spendable credits, every earning also feeds a **score** that never goes down. Dying for good ranks the run on a local top-10 board (by level reached, then score); making the board opens arcade-style three-letter name entry — arrows/ENTER on keyboard (or just type), d-pad/A on a controller, tap the ▲▼ arrows and OK on touch. ESC or B skips the entry.
+
+Progress (level, credits, score, lives, unlocks) is saved in your browser, so a refresh resumes the run at the start of the current level. A game over wipes it, or use RESET PROGRESS in the settings menu (ESC, gamepad BACK, or the ⚙ button on touch screens). The high-score board survives both.
 
 ### Keyboard
 

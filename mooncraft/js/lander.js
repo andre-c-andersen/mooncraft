@@ -1,6 +1,6 @@
 // The lander: creation, flight physics, touchdown/crash, drawing.
 
-import { game, fuelCapacity, bombsPerAttempt, safeVY, safeAngle, thrustPower, saveProgress, cheat } from './state.js';
+import { game, fuelCapacity, bombsPerAttempt, safeVY, safeAngle, thrustPower, saveProgress, cheat, earn } from './state.js';
 import { ctx } from './canvas.js';
 import {
   GRAVITY, ROT_SPEED, SAFE_VX,
@@ -221,7 +221,7 @@ export function updateLander(rot, thrustAmt, assistHeld) {
       const padCr = 50 * pad.mult;
       const fuelCr = Math.floor(lander.fuel / 10);
       const speedCr = Math.max(0, SPEED_BONUS_MAX - Math.floor(lander.age / 60) * SPEED_BONUS_DECAY);
-      game.credits += padCr + fuelCr + speedCr;
+      earn(padCr + fuelCr + speedCr);
       game.landingBreakdown = { pad: padCr, fuel: fuelCr, speed: speedCr };
       // a free life every other level, awarded at touchdown
       if (game.level % 2 === 0) {

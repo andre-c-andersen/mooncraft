@@ -4,6 +4,7 @@ import { setup, assert, importGame } from './harness.mjs';
 
 const expected = {
   credits: 700,
+  score: 12345,
   level: 21,
   lives: 4,
   unlocks: { weapon: 2, assist: 2, nav: 1, shield: 1, gear: 1, thruster: 1, fuel: 1, livesBought: 2 },
@@ -18,6 +19,7 @@ const { game } = await importGame('state.js');
 
 assert(game.level === expected.level, 'level restored: ' + game.level);
 assert(game.credits === expected.credits, 'credits restored: ' + game.credits);
+assert(game.score === expected.score, 'score restored: ' + game.score);
 assert(game.lives === expected.lives, 'lives restored: ' + game.lives);
 assert(game.unlocks.weapon === expected.unlocks.weapon
   && game.unlocks.assist === expected.unlocks.assist

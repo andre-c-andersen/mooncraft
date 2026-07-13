@@ -10,6 +10,7 @@ import { menu, menuTapAt } from '../menu.js';
 import { dropBomb } from '../bombs.js';
 import { advance } from '../game.js';
 import { shopRowAt, shopBuy } from '../shop.js';
+import { entry, entryTapAt } from '../hiscores.js';
 
 export const touch = {
   enabled: 'ontouchstart' in window || navigator.maxTouchPoints > 0,
@@ -91,7 +92,8 @@ canvas.addEventListener('touchstart', e => {
       const row = shopRowAt(p.x, p.y);
       if (row) shopBuy(row);
     } else if (game.state === 'crashed') {
-      advance();
+      if (entry.active) entryTapAt(p.x, p.y); // taps go to the name entry, never restart
+      else advance();
     } else if (buttonUnlocked('bomb') && inButton(btns.bomb, p.x, p.y)) {
       dropBomb();
     } else if (buttonUnlocked('assist') && inButton(btns.assist, p.x, p.y)) {

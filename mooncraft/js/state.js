@@ -61,6 +61,7 @@ export const game = {
   asteroids: [],
   state: 'flying', // flying | landed | crashed
   credits: saved ? saved.credits || 0 : 0,
+  score: saved ? saved.score || 0 : 0, // lifetime run earnings — never spent down
   // an explicit ?level= beats the save (debugging); otherwise resume where we were
   level: urlLevel >= 1 ? startLevel : (saved && saved.level >= 1 ? saved.level : startLevel),
   lives: saved ? saved.lives : START_LIVES,
@@ -90,12 +91,19 @@ export function saveProgress(levelBump = 0) {
   try {
     localStorage.setItem(PROGRESS_KEY, JSON.stringify({
       credits: game.credits,
+      score: game.score,
       level: game.level + levelBump,
       lives: game.lives,
       unlocks: game.unlocks,
       assistOn: game.assistOn,
     }));
   } catch (e) {}
+}
+
+// all earnings flow through here: credits are spendable, score only ever grows
+export function earn(n) {
+  game.credits += n;
+  game.score += n;
 }
 
 export function fuelCapacity() {

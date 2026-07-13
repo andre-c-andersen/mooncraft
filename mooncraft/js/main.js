@@ -12,6 +12,9 @@ import { updateParticles, drawParticles } from './particles.js';
 import { drawHUD } from './hud.js';
 import { drawShop, shopMove, shopActivate, shopSelectLaunch } from './shop.js';
 import { menu, menuMove, menuAdjust, menuActivate, drawMenu } from './menu.js';
+import {
+  entry, maybeStartEntry, entryMove, entryCycle, entryConfirm, entryCancel, drawHiscores,
+} from './hiscores.js';
 import { settings } from './settings.js';
 import { keys } from './input/keyboard.js';
 import { readGamepad } from './input/gamepad.js';
@@ -49,6 +52,19 @@ function update() {
   }
 
   if (game.state === 'crashed') {
+    // name entry on a top-10 game over: d-pad/stick cycles letters, A/START
+    // confirms, B backs out without recording
+    if (entry.active) {
+      if (pad) {
+        if (edge.navLeft) entryMove(-1);
+        if (edge.navRight) entryMove(1);
+        if (edge.navUp) entryCycle(1);
+        if (edge.navDown) entryCycle(-1);
+        if (edge.a || edge.start) entryConfirm();
+        else if (edge.bBtn) entryCancel();
+      }
+      return;
+    }
     if (pad && (edge.a || edge.start)) advance();
     return;
   }
@@ -93,6 +109,7 @@ let prevState = '';
 function step() {
   update();
   if (game.state === 'landed' && prevState !== 'landed') shopSelectLaunch();
+  if (game.state === 'crashed' && prevState !== 'crashed' && game.lives <= 0) maybeStartEntry();
   prevState = game.state;
   if (!menu.open) {
     updateCannons();
@@ -125,6 +142,7 @@ function loop(now) {
   drawParticles();
   drawLander();
   drawHUD();
+  if (game.state === 'crashed' && game.lives <= 0) drawHiscores();
   if (game.state === 'landed') drawShop();
   drawTouchControls();
   if (menu.open) drawMenu();

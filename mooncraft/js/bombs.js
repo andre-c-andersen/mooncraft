@@ -1,6 +1,6 @@
 // Droppable bombs, detonations, and expanding blast rings.
 
-import { game, bombsAreSuper } from './state.js';
+import { game, bombsAreSuper, earn } from './state.js';
 import { ctx } from './canvas.js';
 import {
   GRAVITY, BOMB_EJECT, BOMB_RECOIL, BLAST_RADIUS, SUPER_BLAST_RADIUS,
@@ -51,7 +51,7 @@ export function detonate(x, y, isSuper) {
         game.booms.push({ x: c.x, y: c.y, r: 6, max: 34, color: '#4dd0e1' });
       } else {
         game.cannons.splice(i, 1);
-        game.credits += CANNON_BOUNTY;
+        earn(CANNON_BOUNTY);
       }
     }
   }
@@ -64,7 +64,7 @@ export function detonate(x, y, isSuper) {
     const a = game.asteroids[i];
     if (Math.hypot(a.x - x, a.y - y) < radius + a.r) {
       game.asteroids.splice(i, 1);
-      game.credits += ASTEROID_BOUNTY;
+      earn(ASTEROID_BOUNTY);
     }
   }
   // your own blast can take you down too

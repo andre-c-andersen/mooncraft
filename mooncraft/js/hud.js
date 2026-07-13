@@ -3,6 +3,7 @@
 import { game, fuelCapacity, bombsPerAttempt, safeVY, safeAngle, cheat } from './state.js';
 import { ctx } from './canvas.js';
 import { SAFE_VX, VERSION } from './config.js';
+import { entry } from './hiscores.js';
 import { padAt } from './terrain.js';
 import { gamepad } from './input/gamepad.js';
 import { touch } from './input/touch.js';
@@ -127,6 +128,7 @@ export function drawHUD() {
   };
 
   line('CREDITS ' + game.credits);
+  line('SCORE   ' + game.score);
   line('LEVEL   ' + game.level);
   // fuel readout + bar
   const cap = fuelCapacity();
@@ -193,13 +195,21 @@ export function drawHUD() {
     const over = game.lives <= 0;
     ctx.fillStyle = '#ff5252';
     ctx.font = 'bold 42px Courier New';
-    ctx.fillText(over ? 'GAME OVER' : 'CRASHED', W / 2, H / 2 - 26);
-    ctx.font = '20px Courier New';
-    ctx.fillStyle = '#e0e0e0';
-    ctx.fillText(restartHint + (over ? ' to start over' : ' to retry'), W / 2, H / 2 + 14);
     if (over) {
-      ctx.fillStyle = '#888';
-      ctx.fillText('REACHED LEVEL ' + game.level, W / 2, H / 2 + 48);
+      // title up top — main.js draws the hiscore board in the middle
+      ctx.fillText('GAME OVER', W / 2, 92);
+      ctx.font = 'bold 20px Courier New';
+      ctx.fillStyle = '#e0e0e0';
+      ctx.fillText('REACHED LEVEL ' + game.level + '  ·  SCORE ' + game.score, W / 2, 126);
+      if (!entry.active) {
+        ctx.font = '20px Courier New';
+        ctx.fillText(restartHint + ' to start over', W / 2, H - 28);
+      }
+    } else {
+      ctx.fillText('CRASHED', W / 2, H / 2 - 26);
+      ctx.font = '20px Courier New';
+      ctx.fillStyle = '#e0e0e0';
+      ctx.fillText(restartHint + ' to retry', W / 2, H / 2 + 14);
     }
   } else if (!touch.enabled) {
     ctx.fillStyle = '#666';

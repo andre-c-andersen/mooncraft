@@ -6,6 +6,7 @@ import { genTerrain, resetTerrain } from './terrain.js';
 import { createLander } from './lander.js';
 import { placeCannons } from './cannons.js';
 import { resetAsteroids } from './asteroids.js';
+import { entry, entryReset } from './hiscores.js';
 
 export function reset() {
   game.lander = createLander();
@@ -27,6 +28,8 @@ export function reset() {
 // start over from scratch: game over, or the menu's RESET PROGRESS
 export function freshRun() {
   game.credits = 0;
+  game.score = 0;
+  entryReset(); // hiscores themselves live under their own key and survive
   game.level = game.startLevel;
   game.lives = START_LIVES;
   game.unlocks = freshUnlocks();
@@ -41,6 +44,7 @@ export function freshRun() {
 // or a game over (fresh run from the start level)
 export function advance() {
   if (game.state === 'crashed' && game.lives <= 0) {
+    if (entry.active) return; // name entry owns the input until confirmed
     freshRun();
     return;
   }

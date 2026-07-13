@@ -1,6 +1,6 @@
 // Gameplay tuning constants.
 
-export const VERSION = '1.22';
+export const VERSION = '1.23';
 
 // fixed logical play area — scaled to fit the screen, letterboxed, same view everywhere.
 // 2:1 splits the difference between phone screens (~19.5:9) and laptop browser
@@ -19,6 +19,12 @@ export const SAFE_ANGLE = 0.25; // radians from vertical
 
 export const SPEED_BONUS_MAX = 150;   // landing credits for a lightning-fast touchdown…
 export const SPEED_BONUS_DECAY = 10;  // …shrinking by this much per second of attempt time
+export const LOOP_BONUS = 50;         // stunt credits for a full 360° mid-air loop
+
+// touch throttle response: hover thrust is low (~25%), so the slider rests
+// OFF in a bottom deadzone and responds steeply just above it
+export const TOUCH_THRUST_DEADZONE = 0.15; // bottom fraction of the travel that stays OFF
+export const TOUCH_THRUST_CURVE = 0.5;     // response exponent — <1 = most sensitive near the bottom
 
 // decoy pads: from this level three identical hard pads spawn, all gray —
 // only one is real, revealed after a scan cooldown, so a suicide burn can't

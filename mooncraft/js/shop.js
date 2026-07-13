@@ -111,7 +111,7 @@ export function shopActivate() {
 function layout() {
   const { W, H } = game;
   const rows = shopRows();
-  const rowH = 38;
+  const rowH = touchDevice ? 46 : 38; // finger-sized rows on touch screens
   const pw = Math.min(W * 0.86, 640);
   const ph = 60 + rows.length * rowH + 20;
   const top = Math.min(H / 2 + 36, H - ph - 8); // keep on-screen for short viewports
@@ -157,7 +157,7 @@ export function drawShop() {
   const hint = gamepad.connected
     ? 'D-PAD select   A confirm   B or START launch'
     : touchDevice
-      ? 'tap a row to buy   tap LAUNCH to lift off'
+      ? 'tap to select   tap selected row to buy   LAUNCH lifts off'
       : '↑↓ select   ENTER confirm   SPACE or ESC launch';
   ctx.fillText(hint, cx, top + ph - 12);
   ctx.restore();
@@ -165,9 +165,10 @@ export function drawShop() {
 
 export function shopRowAt(x, y) {
   const { rows, rowH, pw, top, left } = layout();
+  const pad = (rowH - 38) / 2; // touch rows get the extra height as hit area
   for (let i = 0; i < rows.length; i++) {
     const ry = top + 62 + i * rowH;
-    if (x >= left && x <= left + pw && y >= ry - 24 && y <= ry + 12) return rows[i];
+    if (x >= left && x <= left + pw && y >= ry - 24 - pad && y <= ry + 12 + pad) return rows[i];
   }
   return null;
 }

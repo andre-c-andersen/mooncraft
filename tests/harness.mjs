@@ -20,7 +20,14 @@ export function setup({ search = '' } = {}) {
     get: (t, p) => typeof p === 'symbol' ? undefined : (t[p] ??= () => {}),
     set: (t, p, v) => (t[p] = v, true),
   });
-  const canvas = { style: {}, width: 0, height: 0, getContext: () => ctxStub, addEventListener: () => {} };
+  const canvasHandlers = {};
+  const canvas = {
+    style: {}, width: 0, height: 0,
+    getContext: () => ctxStub,
+    addEventListener: (t, fn) => { (canvasHandlers[t] ||= []).push(fn); },
+    // identity mapping: client coords are logical coords in tests
+    getBoundingClientRect: () => ({ left: 0, top: 0, width: 1440, height: 720 }),
+  };
   const winHandlers = {};
 
   globalThis.window = {
@@ -59,7 +66,18 @@ export function setup({ search = '' } = {}) {
   const keyUp = key => { for (const fn of winHandlers.keyup || []) fn({ key }); };
   const pressKey = key => { keyDown(key); keyUp(key); };
 
-  return { store, winHandlers, runFrames, keyDown, keyUp, pressKey };
+  // touch simulation: fires the canvas touch handlers the game registered
+  const touchEvent = (type, id, x, y) => {
+    for (const fn of canvasHandlers[type] || []) {
+      fn({ preventDefault: () => {}, changedTouches: [{ identifier: id, clientX: x, clientY: y }] });
+    }
+  };
+  const touchDown = (x, y, id = 1) => touchEvent('touchstart', id, x, y);
+  const touchMove = (x, y, id = 1) => touchEvent('touchmove', id, x, y);
+  const touchUp = (x, y, id = 1) => touchEvent('touchend', id, x, y);
+  const touchAt = (x, y, id = 1) => { touchDown(x, y, id); touchUp(x, y, id); };
+
+  return { store, winHandlers, runFrames, keyDown, keyUp, pressKey, touchDown, touchMove, touchUp, touchAt };
 }
 
 export const assert = (cond, msg) => {

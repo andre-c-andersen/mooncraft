@@ -4,7 +4,7 @@ import { game, fuelCapacity, bombsPerAttempt, safeVY, safeAngle, thrustPower, sa
 import { ctx } from './canvas.js';
 import {
   GRAVITY, ROT_SPEED, SAFE_VX,
-  SPEED_BONUS_MAX, SPEED_BONUS_DECAY,
+  SPEED_BONUS_MAX, SPEED_BONUS_DECAY, LOOP_BONUS,
   ASSIST_LEVEL_RATE, ASSIST_RETRO_GAIN, ASSIST_RETRO_MAX,
   LAND_ASSIST_RATE, LAND_ASSIST_KP, LAND_ASSIST_DRIFT, LAND_ASSIST_DRIFT_MAX,
   LAND_ASSIST_DESCENT, LAND_ASSIST_DESCENT_MIN, LAND_ASSIST_DESCENT_MAX,
@@ -35,6 +35,7 @@ export function createLander() {
     shieldCooldown: 0,
     shieldRegen: SHIELD_RECHARGE_FRAMES,
     age: 0, // frames since the attempt started, for the landing speed bonus
+    loopAcc: 0, // net winding (rad) toward the loop-de-loop bonus
   };
 }
 
@@ -144,6 +145,7 @@ export function updateLander(rot, thrustAmt, assistHeld) {
     }
   }
 
+  const angleBefore = lander.angle;
   if (rot) {
     lander.angle += ROT_SPEED * rot;
   } else if (assistHeld && game.unlocks.assist >= 1) {
@@ -164,6 +166,17 @@ export function updateLander(rot, thrustAmt, assistHeld) {
     const rate = game.unlocks.assist >= 3 ? LAND_ASSIST_RATE : ASSIST_LEVEL_RATE;
     if (Math.abs(dev) <= rate) lander.angle = target;
     else lander.angle = target + dev - Math.sign(dev) * rate;
+  }
+
+  // stunt pay: a full 360° of net winding is a loop-de-loop
+  lander.loopAcc += lander.angle - angleBefore;
+  if (Math.abs(lander.loopAcc) >= Math.PI * 2) {
+    lander.loopAcc -= Math.sign(lander.loopAcc) * Math.PI * 2;
+    earn(LOOP_BONUS);
+    game.particles.push({
+      x: lander.x, y: lander.y - 26, vx: 0, vy: -0.5,
+      life: 80, color: '#fff176', text: '+' + LOOP_BONUS + ' LOOP',
+    });
   }
 
   lander.thrusting = false;

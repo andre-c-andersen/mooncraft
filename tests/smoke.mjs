@@ -391,10 +391,84 @@ assert(game.bombs.length === 1 && game.bombs.every(b => b.super), 'super bombs f
   assert(game.state === 'landed', 'the revealed real pad still lands');
   assert(game.landingBreakdown.speed === 150, 'the speed-bonus clock starts at the reveal');
 
+  // touch shop: the first tap selects a row, a second tap on it buys
+  {
+    const { shop: shopState, shopRows, shopRowAt, lifePrice } = await importGame('shop.js');
+    assert(shopState.index === shopRows().length - 1, 'shop reopens with LAUNCH preselected');
+    const yFor = id => {
+      for (let y = 150; y < 719; y++) { const r = shopRowAt(720, y); if (r && r.id === id) return y; }
+    };
+    const lifeY = yFor('life');
+    const lives1 = game.lives, credits1 = game.credits, price1 = lifePrice();
+    assert(credits1 >= price1, 'enough credits for the touch purchase test');
+    h.touchAt(720, lifeY);
+    assert(shopRows()[shopState.index].id === 'life' && game.lives === lives1 && game.credits === credits1,
+      'touch: first tap only selects the row');
+    h.touchAt(720, lifeY);
+    assert(game.lives === lives1 + 1 && game.credits === credits1 - price1,
+      'touch: second tap on the selected row buys');
+  }
+
   game.level = levelWas;
   genTerrain();
   game.state = 'crashed';
   pressKey(' '); // back on the pre-decoy level for the rest of the run
+}
+
+// touch flight controls: linear rotation halves, curved thrust with a deadzone
+{
+  const { touch, sliders } = await importGame('input/touch.js');
+  const { TOUCH_THRUST_DEADZONE, TOUCH_THRUST_CURVE } = await importGame('config.js');
+  const s = sliders();
+  h.touchDown(s.rot.cx - s.rot.half, s.rot.cy, 11);
+  assert(touch.rot === -1, 'far left of the pad is full left rotation');
+  h.touchMove(s.rot.cx + s.rot.half / 2, s.rot.cy, 11);
+  assert(Math.abs(touch.rot - 0.5) < 1e-9, 'sliding right transitions linearly to right rotation');
+  h.touchUp(s.rot.cx, s.rot.cy, 11);
+  assert(touch.rot === 0, 'release recenters rotation');
+
+  const { x: tx, bottom, height } = s.thr;
+  h.touchDown(tx, bottom - height * TOUCH_THRUST_DEADZONE * 0.6, 12);
+  assert(touch.thrust === 0, 'the bottom deadzone stays OFF');
+  h.touchMove(tx, bottom - height * 0.5, 12);
+  const expected = Math.pow((0.5 - TOUCH_THRUST_DEADZONE) / (1 - TOUCH_THRUST_DEADZONE), TOUCH_THRUST_CURVE);
+  assert(Math.abs(touch.thrust - expected) < 1e-9,
+    'thrust response is curved above the deadzone (' + touch.thrust.toFixed(3) + ' at half travel)');
+  h.touchMove(tx, bottom - height, 12);
+  assert(touch.thrust === 1, 'top of the slider is full thrust');
+  h.touchUp(tx, bottom - height, 12);
+  assert(touch.thrust === 0, 'release cuts thrust');
+}
+
+// loop-de-loop: a full 360° of net rotation pays a stunt bonus
+{
+  const levelWas = game.level;
+  game.level = 2; // no asteroid waves during the stunt
+  game.cannons = [];
+  game.asteroids = [];
+  const c0 = game.credits, s0 = game.score;
+  keyDown('ArrowLeft'); // ROT_SPEED 0.055 rad/frame ≈ a full turn in 115 frames
+  for (let i = 0; i < 3; i++) { // re-park high so the fall never reaches terrain
+    game.lander.y = 150;
+    game.lander.vy = 0;
+    runFrames(40);
+  }
+  keyUp('ArrowLeft');
+  assert(game.state === 'flying', 'still flying after the loop');
+  assert(game.credits === c0 + 50 && game.score === s0 + 50, 'a full loop pays 50 CR exactly once');
+  // half a turn left then half a turn right nets zero — not a loop
+  keyDown('ArrowLeft');
+  game.lander.y = 150;
+  game.lander.vy = 0;
+  runFrames(50);
+  keyUp('ArrowLeft');
+  keyDown('ArrowRight');
+  game.lander.y = 150;
+  game.lander.vy = 0;
+  runFrames(50);
+  keyUp('ArrowRight');
+  assert(game.credits === c0 + 50, 'wiggling back and forth is not a loop');
+  game.level = levelWas;
 }
 
 // perf overlay toggles with P and draws without breaking the loop

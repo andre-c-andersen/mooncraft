@@ -4,7 +4,7 @@ Small browser games — vanilla HTML/CSS/JS, no dependencies, no build step. The
 
 Live at **https://games.andersen.im** via GitHub Pages.
 
-## 🌙 Moon Lander — v1.22
+## 🌙 Moon Lander — v1.23
 
 A classic lunar lander arcade game — with sci-fi defense cannons, laser turrets, droppable bombs, asteroids, an upgrade economy, touch controls, and full Xbox controller support.
 
@@ -73,7 +73,7 @@ mooncraft/
 
 ## How to play
 
-Land gently on a pad. A safe landing needs low speed and a nearly upright ship — the landing computer upgrade adds a docking indicator: keep the ball inside the brackets and land when it reads LAND OK. Pads come in three difficulties: wide green ×1, medium amber ×2, and narrow red ×3 — the multiplier scales your landing credits, leftover fuel pays a bonus, and landing quickly pays a speed bonus (up to 150 credits, shrinking every second). The easy pad disappears from level 10 and the medium from level 20 — after that, only the narrow ×3 pad remains. From level 25, three identical narrow pads spawn but only one is real: all three sit gray with a `?` until a scan cooldown ends (5 s at level 25, growing to 20 s — the landing computer counts it down), then the real pad lights up red and the dead decoys go dark. Touching a decoy is a crash like any terrain, the real pad is re-rolled on every attempt, and the speed-bonus clock only starts at the reveal — so no more diving blind at a known pad. If you fly off the top of the screen, an amber marker on the top border tracks your position and height.
+Land gently on a pad. A safe landing needs low speed and a nearly upright ship — the landing computer upgrade adds a docking indicator: keep the ball inside the brackets and land when it reads LAND OK. Pads come in three difficulties: wide green ×1, medium amber ×2, and narrow red ×3 — the multiplier scales your landing credits, leftover fuel pays a bonus, and landing quickly pays a speed bonus (up to 150 credits, shrinking every second). A full 360° mid-air loop pays a 50-credit stunt bonus. The easy pad disappears from level 10 and the medium from level 20 — after that, only the narrow ×3 pad remains. From level 25, three identical narrow pads spawn but only one is real: all three sit gray with a `?` until a scan cooldown ends (5 s at level 25, growing to 20 s — the landing computer counts it down), then the real pad lights up red and the dead decoys go dark. Touching a decoy is a crash like any terrain, the real pad is re-rolled on every attempt, and the speed-bonus clock only starts at the reveal — so no more diving blind at a known pad. If you fly off the top of the screen, an amber marker on the top border tracks your position and height.
 
 Landings earn **credits**, spent in the supply depot (shown after every landing):
 
@@ -117,6 +117,16 @@ Progress (level, credits, score, lives, unlocks) is saved in your browser, so a 
 | Back | Settings menu |
 
 The settings menu has adjustable rotation sensitivity, stick deadzone, and trigger threshold — saved in your browser.
+
+### Touch (iOS / Android)
+
+| Control | Action |
+|---|---|
+| Left pad (bottom-left) | Rotate — linear: left of center turns left, right turns right, further = faster |
+| Right slider (bottom-right) | Thrust — rests OFF in the bottom deadzone; curved response puts the hover band under your thumb |
+| Round buttons | Fly assist (left) · drop bomb (right), once unlocked |
+| Shop | Tap a row to select it, tap the selected row again to buy — LAUNCH starts selected |
+| ⚙ (top-right) | Settings menu |
 
 ## Publishing on GitHub Pages
 

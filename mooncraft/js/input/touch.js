@@ -9,24 +9,27 @@ import { canvas, ctx, toLogical } from '../canvas.js';
 import { menu, menuTapAt } from '../menu.js';
 import { dropBomb } from '../bombs.js';
 import { advance } from '../game.js';
-import { shopRowAt, shopBuy } from '../shop.js';
+import { shop, shopRows, shopRowAt, shopBuy } from '../shop.js';
 import { entry, entryTapAt } from '../hiscores.js';
+import { TOUCH_THRUST_DEADZONE, TOUCH_THRUST_CURVE } from '../config.js';
 
 export const touch = {
   enabled: 'ontouchstart' in window || navigator.maxTouchPoints > 0,
-  rot: 0,     // -1..1 from the left pad
-  thrust: 0,  //  0..1 from the right slider
+  rot: 0,        // -1..1 from the left pad
+  thrust: 0,     //  0..1 applied throttle (deadzoned + curved)
+  thrustRaw: 0,  //  0..1 raw thumb travel, for drawing the knob
 };
 
 // touches we're tracking, keyed by touch identifier:
 // { kind: 'rot' | 'thrust' | 'tap', x, y }
 const tracked = new Map();
 
-function sliders() {
+// exported so tests can drive the exact geometry
+export function sliders() {
   const { W, H } = game;
   return {
-    rot: { cx: 220, cy: H - 90, half: 130 },              // horizontal pad, centered on cx
-    thr: { x: W - 110, bottom: H - 50, height: 210 },     // vertical slider, bottom = off
+    rot: { cx: 250, cy: H - 100, half: 200 },             // horizontal pad: left half turns left, right half right
+    thr: { x: W - 120, bottom: H - 40, height: 280 },     // vertical slider, bottom = off
   };
 }
 
@@ -35,7 +38,7 @@ function actionButtons() {
   const r = Math.min(W, H) * 0.07;
   return {
     assist: { x: 24 + r, y: H * 0.52, r },
-    bomb:   { x: W - 24 - r, y: H * 0.52, r },
+    bomb:   { x: W - 24 - r, y: H * 0.36, r }, // above the taller throttle slider
   };
 }
 
@@ -55,23 +58,30 @@ function inButton(b, x, y) {
 }
 
 function inRotPad(s, x, y) {
-  return Math.abs(x - s.rot.cx) <= s.rot.half + 46 && Math.abs(y - s.rot.cy) <= 74;
+  return Math.abs(x - s.rot.cx) <= s.rot.half + 50 && Math.abs(y - s.rot.cy) <= 105;
 }
 
 function inThrustSlider(s, x, y) {
-  return Math.abs(x - s.thr.x) <= 64
-    && y <= s.thr.bottom + 36 && y >= s.thr.bottom - s.thr.height - 46;
+  return Math.abs(x - s.thr.x) <= 84
+    && y <= s.thr.bottom + 36 && y >= s.thr.bottom - s.thr.height - 50;
 }
 
 function recompute() {
   touch.rot = 0;
   touch.thrust = 0;
+  touch.thrustRaw = 0;
   const s = sliders();
   for (const g of tracked.values()) {
     if (g.kind === 'rot') {
+      // linear across the whole pad: left of center turns left, right turns right
       touch.rot = Math.max(-1, Math.min(1, (g.x - s.rot.cx) / s.rot.half));
     } else if (g.kind === 'thrust') {
-      touch.thrust = Math.max(0, Math.min(1, (s.thr.bottom - g.y) / s.thr.height));
+      // resting in the bottom deadzone is OFF; above it the response is
+      // curved so the low-throttle hover band gets the most finger travel
+      const raw = Math.max(0, Math.min(1, (s.thr.bottom - g.y) / s.thr.height));
+      touch.thrustRaw = raw;
+      touch.thrust = raw <= TOUCH_THRUST_DEADZONE ? 0
+        : Math.pow((raw - TOUCH_THRUST_DEADZONE) / (1 - TOUCH_THRUST_DEADZONE), TOUCH_THRUST_CURVE);
     }
   }
 }
@@ -90,7 +100,13 @@ canvas.addEventListener('touchstart', e => {
       menuTapAt(p.x, p.y);
     } else if (game.state === 'landed') {
       const row = shopRowAt(p.x, p.y);
-      if (row) shopBuy(row);
+      if (row) {
+        // two-step like a cursor: the first tap selects the row, a second
+        // tap on the selected row buys it (LAUNCH starts selected)
+        const idx = shopRows().findIndex(r => r.id === row.id);
+        if (idx === shop.index) shopBuy(row);
+        else shop.index = idx;
+      }
     } else if (game.state === 'crashed') {
       if (entry.active) entryTapAt(p.x, p.y); // taps go to the name entry, never restart
       else advance();
@@ -188,9 +204,11 @@ export function drawTouchControls() {
     ctx.fill();
   }
 
-  // right: throttle slider — bottom is OFF, fill shows the amount
+  // right: throttle slider — a deadzone at the bottom stays OFF, then a
+  // gradient fill that ramps steeply through the low-throttle hover band
   {
     const { x, bottom, height } = s.thr;
+    const deadTop = bottom - height * TOUCH_THRUST_DEADZONE;
     ctx.globalAlpha = thrActive ? 0.55 : 0.3;
     ctx.strokeStyle = '#90a4ae';
     ctx.lineWidth = 3;
@@ -198,11 +216,20 @@ export function drawTouchControls() {
     ctx.moveTo(x, bottom);
     ctx.lineTo(x, bottom - height);
     ctx.stroke();
-    ctx.beginPath(); // end caps
+    ctx.beginPath(); // end caps + deadzone boundary tick
     ctx.moveTo(x - 12, bottom);
     ctx.lineTo(x + 12, bottom);
     ctx.moveTo(x - 12, bottom - height);
     ctx.lineTo(x + 12, bottom - height);
+    ctx.moveTo(x - 16, deadTop);
+    ctx.lineTo(x + 16, deadTop);
+    ctx.stroke();
+    // the OFF band, visibly distinct so the thumb can rest there
+    ctx.strokeStyle = '#546e7a';
+    ctx.lineWidth = 8;
+    ctx.beginPath();
+    ctx.moveTo(x, bottom);
+    ctx.lineTo(x, deadTop);
     ctx.stroke();
     ctx.fillStyle = '#90a4ae';
     ctx.font = '20px Courier New';
@@ -210,17 +237,21 @@ export function drawTouchControls() {
     ctx.font = '12px Courier New';
     ctx.fillText('OFF', x, bottom + 16);
     if (touch.thrust > 0) {
-      ctx.globalAlpha = 0.6;
-      ctx.strokeStyle = '#ffa726';
+      ctx.globalAlpha = 0.75;
+      const grad = ctx.createLinearGradient(0, deadTop, 0, bottom - height);
+      grad.addColorStop(0, '#7f5416');
+      grad.addColorStop(0.5, '#ffa726');
+      grad.addColorStop(1, '#fff176');
+      ctx.strokeStyle = grad;
       ctx.lineWidth = 6;
       ctx.beginPath();
-      ctx.moveTo(x, bottom);
-      ctx.lineTo(x, bottom - height * touch.thrust);
+      ctx.moveTo(x, deadTop);
+      ctx.lineTo(x, bottom - height * touch.thrustRaw);
       ctx.stroke();
     }
     ctx.globalAlpha = thrActive ? 0.9 : 0.45;
     ctx.beginPath();
-    ctx.arc(x, bottom - height * touch.thrust, 20, 0, Math.PI * 2);
+    ctx.arc(x, bottom - height * touch.thrustRaw, 22, 0, Math.PI * 2);
     ctx.fillStyle = touch.thrust > 0 ? '#ffa726' : '#78909c';
     ctx.fill();
   }

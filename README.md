@@ -4,11 +4,13 @@ Small browser games — vanilla HTML/CSS/JS, no dependencies, no build step. The
 
 Live at **https://games.andersen.im** via GitHub Pages.
 
-## 🌙 Moon Lander — v1.37
+## 🌙 Moon Lander — v1.38
 
 A classic lunar lander arcade game — with sci-fi defense cannons, laser turrets, droppable bombs, asteroids, an upgrade economy, sound, touch controls, and full Xbox controller support.
 
 Play it at **https://games.andersen.im/mooncraft/**
+
+The site works offline: visit once and a service worker caches everything, so it loads with no connection — in a tunnel, on a plane. It's network-first, so whenever you *are* online you always get the latest version. On a phone, **Add to Home Screen** installs it like an app: its own icon, fullscreen, landscape.
 
 ## Run locally
 
@@ -34,6 +36,7 @@ Headless smoke tests boot the real game against a stubbed DOM and drive it frame
 node tests/smoke.mjs
 node tests/restore-check.mjs
 node tests/cheat-check.mjs
+node tests/sw-check.mjs               # service worker: version + precache integrity
 npx -y -p typescript@5 tsc --noEmit   # typecheck (JSDoc + checkJs — no build step)
 ```
 
@@ -44,9 +47,12 @@ The runs are deterministic (the harness seeds `Math.random`; set `TEST_SEED=n` t
 ```
 index.html          game index with cards (the site root)
 CNAME               games.andersen.im
+sw.js               offline support: network-first service worker (site-wide)
 tests/              headless test suite (run with plain node)
 mooncraft/
   index.html        the Moon Lander entry page
+  manifest.json     PWA manifest — Add to Home Screen installs the game
+  icons/            app icons (PNG, 180/192/512)
   css/style.css     page + canvas styles
   js/
     main.js         entry point: input aggregation, update/draw loop

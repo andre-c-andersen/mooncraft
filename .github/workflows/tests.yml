@@ -15,5 +15,6 @@ jobs:
       - run: node tests/smoke.mjs
       - run: node tests/restore-check.mjs
       - run: node tests/cheat-check.mjs
+      - run: node tests/sw-check.mjs
       # type-checking only — the .js files ship as-is, no build step
       - run: npx -y -p typescript@5 tsc --noEmit

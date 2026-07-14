@@ -13,7 +13,9 @@ docs, tests, refactors, all of it. Players identify builds by the version in
 the bottom-right HUD corner; two different builds must never share a label.
 
 For each push:
-1. Bump `VERSION` in `mooncraft/js/config.js`.
+1. Bump `VERSION` in `mooncraft/js/config.js` **and** in `sw.js` (must match —
+   `tests/sw-check.mjs` enforces it; the sw.js bump is what makes installed
+   offline copies re-download the new build).
 2. Update the version in the Moon Lander heading in `README.md`.
 3. Tag it: `git tag vX.Y && git push origin vX.Y` (same commit as the change).
 
@@ -35,6 +37,7 @@ never write saved progress.
 node tests/smoke.mjs
 node tests/restore-check.mjs
 node tests/cheat-check.mjs
+node tests/sw-check.mjs
 npx -y -p typescript@5 tsc --noEmit   # typecheck (JSDoc + checkJs, no build)
 ```
 
@@ -46,7 +49,7 @@ Headless, dependency-free: they stub the DOM, boot the real game, and drive
 the loop frame by frame (see `tests/harness.mjs`). The harness seeds
 `Math.random`, so runs are deterministic; `TEST_SEED=n node tests/smoke.mjs`
 explores other seeds (the seed is printed for replaying failures). CI runs
-all three on every push (`.github/workflows/tests.yml`). When changing
+all of them on every push (`.github/workflows/tests.yml`). When changing
 gameplay, extend the smoke test to cover it.
 
 ## Architecture (mooncraft/js/)
@@ -60,6 +63,10 @@ gameplay, extend the smoke test to cover it.
   input and runs the loop; input lives in `input/` (keyboard, gamepad,
   touch — all three must be kept in feature parity).
 - All tunable constants live in `config.js` — don't scatter magic numbers.
+- Offline/PWA: `sw.js` at the repo root is a network-first service worker
+  (online always fetches fresh; the cache is the offline fallback). Every
+  deployable file must be listed in its `PRECACHE` — adding a sound, module,
+  or icon means adding a line there (`tests/sw-check.mjs` enforces it).
 
 ## Invariants — do not break
 

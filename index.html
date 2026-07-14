@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>games.andersen.im</title>
+  <link rel="icon" href="mooncraft/icons/icon-192.png">
   <style>
     * { box-sizing: border-box; }
     html, body {
@@ -108,5 +109,10 @@
       <a href="https://github.com/andre-c-andersen/games">source on GitHub</a>
     </footer>
   </main>
+  <script>
+    // offline support: network-first service worker at the site root
+    if ('serviceWorker' in navigator)
+      addEventListener('load', () => navigator.serviceWorker.register('sw.js'));
+  </script>
 </body>
 </html>

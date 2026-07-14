@@ -7,10 +7,19 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>Moon Lander</title>
   <link rel="stylesheet" href="css/style.css">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="icons/icon-192.png">
+  <link rel="apple-touch-icon" href="icons/icon-180.png">
+  <meta name="theme-color" content="#000000">
 </head>
 <body>
   <canvas id="game"></canvas>
   <div id="rotate">🔄<br>Rotate your device —<br>this game plays in landscape</div>
   <script type="module" src="js/main.js"></script>
+  <script>
+    // offline support: network-first service worker at the site root
+    if ('serviceWorker' in navigator)
+      addEventListener('load', () => navigator.serviceWorker.register('../sw.js'));
+  </script>
 </body>
 </html>
